@@ -204,7 +204,7 @@ const Onboarding = () => {
       <div className="app-frame">
         {/* Universal Status Bar */}
         <div className="status-bar">
-            <span className="time">{time}</span>;
+            <span className="time">{time}</span>
             <div className="status-icons">
             <span className="icon-signal">📶</span>
             <span className="icon-wifi">📡</span>
