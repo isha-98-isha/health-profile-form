@@ -684,7 +684,11 @@ const Onboarding = () => {
                     <span className="edit-icon-btn" onClick={() => setActivePage(3)}>✏️</span>
                   </div>
                   <div className="confirm-value-box">
-                    <span className="box-val-bold">5 Nov 2003</span>
+                    <span className="box-val-bold">  {new Date(dob).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })}</span>
                   </div>
                 </div>
 
