@@ -15,8 +15,8 @@
   --color-text-secondary: #c5cedc;
   
   /* Borders & Glassmorphism */
-  --glass-border: 1px solid rgba(255, 255, 255, 0.12);
-  --glass-top-highlight: 1px solid rgba(255, 255, 255, 0.22);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.24);
+  --glass-top-highlight: 1px solid rgba(255, 255, 255, 0.32);
   --card-inner-shadows: inset 3.5px 7.5px 7.5px rgba(255, 255, 255, 0.2), inset 1px 5px 5px rgba(255, 255, 255, 0.2);
   --card-glow-shadow: 0 10px 40px rgba(44, 95, 246, 0.25);
   --btn-glow-shadow: 0 4px 20px rgba(38, 72, 177, 0.45);
@@ -27,5 +27,5 @@
   --radius-step-icon: 50%;
   
   /* Typography */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family: 'Inter', sans-serif;
 }

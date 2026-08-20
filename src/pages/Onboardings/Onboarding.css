@@ -14,7 +14,7 @@
   width: 100%;
   max-width: 834px;
   min-height: 1194px;
-  border-radius: 41px;
+  border-radius: 28px;
   background-color: #000000;
   overflow: hidden;
   position: relative;
@@ -193,9 +193,10 @@
   max-width: 570px;
 }
 .page-one-modal {
-  background: #0f172a; /* dark background */
+  background: radial-gradient(110% 145% at 50% 0%, #262626 0%, #101010 38%, #020202 76%, #1b1b1b 100%);
   padding: 32px;
-  border-radius: 12px;
+  border: var(--glass-border);
+  border-radius: 17px;
   max-width: 480px; /* container width */
   margin: 0 auto;
   color: #fff;
@@ -217,10 +218,10 @@
 .page-one-form input,
 .page-one-form select {
   padding: 12px 14px;
-  border: 1px solid #334155;
+  border: var(--glass-border);
   border-radius: 8px;
   font-size: 15px;
-  background: #1e293b;
+  background: #151515;
   color: #f1f5f9;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -300,7 +301,7 @@
   height: auto;
   padding: 28px 22px 22px;
   margin: auto;
-  border: 1px solid rgba(255, 255, 255, 0.24);
+  border: var(--glass-border);
   border-radius: 16px;
   background: radial-gradient(125% 120% at 50% 0%, #292929 0%, #111111 42%, #050505 78%, #181818 100%);
   box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.35), 0 0 18px rgba(255, 255, 255, 0.2);
@@ -321,6 +322,15 @@
   flex: 0 0 42px;
   fill: #ffffff;
   text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+.page-step-container,
+.page-one-form,
+.page-two-modal,
+.page-three-modal,
+.page-four-modal,
+.page-seven-modal {
+  font-family: var(--font-family);
 }
 
 .page-two-title {
@@ -486,6 +496,7 @@
   margin: 0 0 14px;
   font-size: 20px;
   line-height: 1.2;
+  text-align: left;
 }
 
 /* PAGE 2: Goals 3x2 Grid */
@@ -526,7 +537,7 @@
   padding: 10px;
   border-radius: 15px;
   background: linear-gradient(145deg, #202020 0%, #111111 58%, #1c1c1c 100%);
-  border-color: rgba(255, 255, 255, 0.3);
+  border: var(--glass-border);
   box-shadow: inset 2px 2px 4px rgba(255, 255, 255, 0.2), inset -2px -2px 5px rgba(0, 0, 0, 0.7), 0 0 5px rgba(255, 255, 255, 0.06);
 }
 
@@ -559,6 +570,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.goal-card-body {
+  min-width: 0;
+  overflow: hidden;
 }
 
 .goal-icon {
@@ -599,6 +615,8 @@
 }
 
 .page-two-modal .goal-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-size: 14px;
   line-height: 1.2;
 }
@@ -611,6 +629,11 @@
 }
 
 .page-two-modal .goal-subtitle {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   font-size: 10px;
   line-height: 1.25;
 }
@@ -648,7 +671,7 @@
   height: 410px;
   padding: 26px 22px 23px;
   margin: auto;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: var(--glass-border);
   border-radius: 17px;
   background: radial-gradient(110% 145% at 50% 0%, #262626 0%, #101010 38%, #020202 76%, #1b1b1b 100%);
   box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.32), 0 0 18px rgba(255, 255, 255, 0.2);
@@ -886,7 +909,7 @@
   height: 452px;
   padding: 26px 22px 23px;
   margin: auto;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: var(--glass-border);
   border-radius: 17px;
   background: radial-gradient(110% 145% at 50% 0%, #262626 0%, #101010 38%, #020202 76%, #1b1b1b 100%);
   box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.32), 0 0 18px rgba(255, 255, 255, 0.2);
@@ -1067,7 +1090,7 @@
   width: min(512px, calc(100vw - 32px));
   margin: auto;
   padding: 26px 22px 23px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: var(--glass-border);
   border-radius: 17px;
   background: radial-gradient(110% 145% at 50% 0%, #262626 0%, #101010 38%, #020202 76%, #1b1b1b 100%);
   box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.32), 0 0 18px rgba(255, 255, 255, 0.2);
