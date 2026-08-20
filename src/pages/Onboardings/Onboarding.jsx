@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Onboarding.css';
 import Button from '../../components/Buttons/Button';
-import heroImage from '../../assets/hero.png';
 
 const Onboarding = () => {
   const [activePage, setActivePage] = useState(1);
@@ -10,24 +9,17 @@ const Onboarding = () => {
   const [selectedGoals, setSelectedGoals] = useState(['Longevity', 'Build strength', 'Body re-composition']);
 
   // Page 3 State
-  const [gender, setGender] = useState('Female');
-  const [dob, setDob] = useState('2003-11-05');
   const [weightUnit, setWeightUnit] = useState('kg');
   const [weightValue, setWeightValue] = useState(66);
   const [heightUnit, setHeightUnit] = useState('cm');
   const [heightValue, setHeightValue] = useState(166);
+  const [activeMeasurement, setActiveMeasurement] = useState('weight');
 
   // Page 4 State
-  const [yearsExp, setYearsExp] = useState(12);
-  const [frequency, setFrequency] = useState('5+ sessions');
+  const [yearsExp, setYearsExp] = useState(21);
+  const [frequency, setFrequency] = useState('Once a week');
   const [injuries, setInjuries] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-  // Page 5 State (Health Consents)
-  const [selectedConsents, setSelectedConsents] = useState(['data_use', 'pro_visibility', 'legal_followup']);
-
-  // Assessment Modal Popup State
-  const [showAssessmentModal, setShowAssessmentModal] = useState(false);
 
   // Scroll Wheel Ref for Page 4
   const wheelRef = useRef(null);
@@ -58,9 +50,72 @@ const Onboarding = () => {
     },
   ];
 
+  //page1.1
+   const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    countryCode: "+91",
+    phone: "",
+    email: "",
+    dob: "",
+    gender: "",
+  });
+
+  const [errors, setErrors] = useState({});
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const validate = () => {
+  let newErrors = {};
+
+  // First & Last Name
+  if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
+  if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
+
+  // Phone number: required + 10 digits
+  if (!formData.phone.trim()) {
+    newErrors.phone = "Phone number is required";
+  } else if (!/^\d{10}$/.test(formData.phone)) {
+    newErrors.phone = "Enter a valid 10-digit number";
+  }
+
+  // Email: required + must contain @
+  if (!formData.email.trim()) {
+    newErrors.email = "Email is required";
+  } else if (!formData.email.includes("@")) {
+    newErrors.email = "Email must contain '@'";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    newErrors.email = "Enter a valid email address";
+  }
+
+  // DOB: required + not greater than today
+  if (!formData.dob.trim()) {
+    newErrors.dob = "Date of birth is required";
+  } else {
+    const today = new Date();
+    const dobDate = new Date(formData.dob);
+    if (dobDate > today) {
+      newErrors.dob = "Check Date of Birth";
+    }
+  }
+
+  // Gender
+  if (!formData.gender.trim()) newErrors.gender = "Gender is required";
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
+
+  const handleNext = () => {
+    if (validate()) {
+      setActivePage(2);
+    }
+  };
   // Page 2 Goal Options
   const goalOptions = [
-    { id: 'longevity', title: 'Longevity', subtitle: 'Drop your biological age. Slowly.', icon: '🏃' },
+    { id: 'longevity', title: 'Longevity', subtitle: 'Drop your biological age. Slowly.', icon: '⌛' },
     { id: 'strength', title: 'Build strength', subtitle: 'Lift heaviest, look leaner, age slower.', icon: '💪' },
     { id: 'recomposition', title: 'Body re-composition', subtitle: 'Composition-led, not scale-led.', icon: '🔥' },
     { id: 'endurance', title: 'Elevate endurance', subtitle: 'VO2 max, stamina, cardiac output.', icon: '🏃‍♂️' },
@@ -68,36 +123,10 @@ const Onboarding = () => {
     { id: 'sport', title: 'Sport-specific', subtitle: 'Tennis, golf, running, soccer...', icon: '⚽' },
   ];
 
-  // Page 5 Consents Options
-  const consentOptions = [
-    {
-      id: 'data_use',
-      title: 'Data use',
-      subtitle: 'VYONIC may use my anonymised biomarker data to improve the platform. My named data is never sold.',
-    },
-    {
-      id: 'pro_visibility',
-      title: 'Professional visibility',
-      subtitle: 'My coach sees my lab assessment & session logs. I can revoke in profile.',
-    },
-    {
-      id: 'legal_followup',
-      title: 'Follow-up with guide to check with legal',
-      subtitle: 'Follow-up with guide to check with legal.',
-    },
-  ];
+ 
 
-  const calculateAge = (dobString) => {
-    if (!dobString) return 23;
-    const birthDate = new Date(dobString);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age > 0 ? age : 23;
-  };
+  const displayedWeight = weightUnit === 'kg' ? weightValue.toFixed(1) : (weightValue * 2.20462).toFixed(1);
+  const displayedHeight = heightUnit === 'cm' ? heightValue : (heightValue / 30.48).toFixed(1);
 
   const toggleGoal = (title) => {
     if (selectedGoals.includes(title)) {
@@ -107,15 +136,7 @@ const Onboarding = () => {
     }
   };
 
-  const toggleConsent = (id) => {
-    if (selectedConsents.includes(id)) {
-      setSelectedConsents(selectedConsents.filter((item) => item !== id));
-    } else {
-      setSelectedConsents([...selectedConsents, id]);
-    }
-  };
 
-  const isAllConsentsSelected = selectedConsents.length === 3;
 
   const frequencyOptions = [
     'Once a Week',
@@ -127,39 +148,45 @@ const Onboarding = () => {
   // Wheel years array (0 to 100)
   const yearsArray = Array.from({ length: 100 }, (_, i) => i);
 
-  const handleWheelScroll = () => {
-    if (!wheelRef.current) return;
-    const scrollTop = wheelRef.current.scrollTop;
-    const itemHeight = 52;
-    const index = Math.round(scrollTop / itemHeight);
-    if (yearsArray[index] !== undefined && yearsArray[index] !== yearsExp) {
-      setYearsExp(yearsArray[index]);
-    }
-  };
+const handleWheelScroll = () => {
+  if (!wheelRef.current) return;
+  const scrollTop = wheelRef.current.scrollTop; 
+  const itemHeight = 52;
+  const spacerHeight = 84; // matches your CSS
+  const index = Math.round(
+    (scrollTop + wheelRef.current.clientHeight / 2 - spacerHeight - itemHeight / 2) / itemHeight
+  );
+  if (yearsArray[index] !== undefined && yearsArray[index] !== yearsExp) {
+    setYearsExp(yearsArray[index]);
+  }
+};
 
-  const handleWheelEvent = (e) => {
-    e.preventDefault();
-    if (!wheelRef.current) return;
-    const direction = e.deltaY > 0 ? 1 : -1;
-    const newYears = Math.min(Math.max(yearsExp + direction, 0), 99);
-    setYearsExp(newYears);
-    wheelRef.current.scrollTo({
-      top: newYears * 52,
+const handleWheelEvent = (e) => {
+  e.preventDefault();
+  if (!wheelRef.current) return;
+  const direction = e.deltaY > 0 ? 1 : -1; 
+  const newYears = Math.min(Math.max(yearsExp + direction, 0), yearsArray.length - 1);
+  setYearsExp(newYears);
+  const selectedItem = wheelRef.current.querySelectorAll('.wheel-item')[newYears];
+  if (selectedItem) {
+    selectedItem.scrollIntoView({
       behavior: 'smooth',
+      block: 'center', 
+      inline: 'nearest'
     });
-  };
+  }
+};
+
 
   useEffect(() => {
     if (activePage === 4 && wheelRef.current) {
-      wheelRef.current.scrollTo({
-        top: yearsExp * 52,
-        behavior: 'smooth',
-      });
+      const selectedItem = wheelRef.current.querySelectorAll('.wheel-item')[yearsExp];
+      if (selectedItem) {
+        selectedItem.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
     }
   }, [activePage, yearsExp]);
 
-  //Live Time Update
-  const [time, setTime] = useState("");
   // Full Weight Ruler Array (30kg to 160kg)
   const fullWeightTicks = Array.from({ length: 131 }, (_, i) => 30 + i);
 
@@ -167,21 +194,6 @@ const Onboarding = () => {
   const fullHeightTicks = Array.from({ length: 121 }, (_, i) => 100 + i);
     
   
-   useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      const formatted = now.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-      setTime(formatted);
-    };
-
-    updateTime(); // run once immediately
-    const interval = setInterval(updateTime, 1000); // update every second
-       return () => clearInterval(interval); // cleanup
-  }, []);
-
   useEffect(() => {
     if (activePage === 3) {
       if (weightRulerRef.current) {
@@ -203,61 +215,150 @@ const Onboarding = () => {
     <div className="app-viewport">
       <div className="app-frame">
         {/* Universal Status Bar */}
-        <div className="status-bar">
-            <span className="time">{time}</span>
-            <div className="status-icons">
-            <span className="icon-signal">📶</span>
-            <span className="icon-wifi">📡</span>
-            <span className="icon-battery">🔋</span>
-          </div>
-        </div>
-
         {/* PAGE 1: Welcome Screen */}
         {activePage === 1 && (
-          <div className="onboarding-container">
-            <div className="hero-section">
-              <img src={heroImage} alt="Athlete Squatting" className="hero-img" />
-              <div className="hero-fade"></div>
+          <div className="page-step-container page-one-modal">
+            <div className="page-two-header">
+              <svg className="vyonic-mark" viewBox="0 0 48 52" aria-hidden="true">
+                <path d="M2 4 24 16 46 4 28 29v19l-4 4-4-4V29L2 4Z" />
+                <path d="M10 7 24 14 38 7 24 25 10 7Z" fill="#777" />
+              </svg>
+              <h1 className="page-two-title">Set Up Profile &amp; Start Assessment</h1>
             </div>
 
-            <div className="glass-card">
-              <h2 className="card-title">
-                John, this is where you become who you&apos;re meant to be
-              </h2>
+            <h1 className="page-heading">Welcome, John This is where you become who you&apos;re meant to be.</h1>
 
-              <div className="steps-container">
-                <h3 className="section-label">What we&apos;ll do together</h3>
-                <div className="steps-list">
-                  {page1Steps.map((step) => (
-                    <div key={step.id} className="step-row">
-                      <div className="step-badge">{step.id}</div>
-                      <div className="step-text">
-                        <div className="step-name">{step.title}</div>
-                        <div className="step-desc">{step.subtitle}</div>
-                      </div>
-                    </div>
-                  ))}
+            <div className="page-one-steps">
+              <h2>What we&apos;ll do together</h2>
+              {page1Steps.map((step) => (
+                <div key={step.id} className="page-one-step">
+                  <span>{step.id}</span>
+                  <div><strong>{step.title}</strong><small>{step.subtitle}</small></div>
                 </div>
-              </div>
+              ))}
+            </div>
 
-              <div className="cta-container">
-                <Button onClick={() => setActivePage(2)}>Begin</Button>
-              </div>
+            <div className="page-three-footer page-one-footer">
+              <Button onClick={() => setActivePage(1.1)}>Begin</Button>
             </div>
           </div>
         )}
+        
+ {activePage === 1.1 && (
+  <div className="page-step-container page-one-modal">
+    <div className="page-two-header">
+      <svg className="vyonic-mark" viewBox="0 0 48 52" aria-hidden="true">
+        <path d="M2 4 24 16 46 4 28 29v19l-4 4-4-4V29L2 4Z" />
+        <path d="M10 7 24 14 38 7 24 25 10 7Z" fill="#777" />
+      </svg>
+      <h1 className="page-two-title">Add Details to Start Assessment</h1>
+    </div>
+
+    <form className="page-one-form">
+      <div className="form-group">
+        <input
+          name="firstName"
+          placeholder="First Name *"
+          value={formData.firstName}
+          onChange={handleChange}
+        />
+        {errors.firstName && <span className="error-text">{errors.firstName}</span>}
+      </div>
+
+      <div className="form-group">
+        <input
+          name="lastName"
+          placeholder="Last Name *"
+          value={formData.lastName}
+          onChange={handleChange}
+        />
+        {errors.lastName && <span className="error-text">{errors.lastName}</span>}
+      </div>
+
+      {/* Country code + phone */}
+      <div className="form-row-horizontal">
+        <div className="form-group flex-fixed">
+          <select name="countryCode" value={formData.countryCode} onChange={handleChange}>
+            <option value="+91">IN +91</option>
+            <option value="+971">AE +971</option>
+            <option value="+1">US +1</option>
+            <option value="+44">UK +44</option>
+            <option value="+61">AU +61</option>
+          </select>
+        </div>
+        <div className="form-group flex-grow">
+          <input
+            name="phone"
+            placeholder="(000) 000-0000 *"
+            value={formData.phone}
+            onChange={handleChange}
+          />
+          {errors.phone && <span className="error-text">{errors.phone}</span>}
+        </div>
+      </div>
+
+      <div className="form-group">
+        <input
+          type="email"
+          name="email"
+          placeholder="Email *"
+          value={formData.email}
+          onChange={handleChange}
+        />
+        {errors.email && <span className="error-text">{errors.email}</span>}
+      </div>
+
+      {/* DOB + gender */}
+      <div className="form-row-horizontal">
+        <div className="form-group flex-grow">
+          <input
+            name="dob"
+            placeholder="dd - mm - yyyy"
+            value={formData.dob}
+            onChange={handleChange}
+          />
+          {errors.dob && <span className="error-text">{errors.dob}</span>}
+        </div>
+        <div className="form-group flex-grow">
+          <select name="gender" value={formData.gender} onChange={handleChange}>
+            <option value="">Select Gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+          {errors.gender && <span className="error-text">{errors.gender}</span>}
+        </div>
+      </div>
+    </form>
+
+    <div className="page-three-footer page-one-footer">
+      <button type="button" className="btn-gradient" onClick={handleNext}>
+        Next
+      </button>
+    </div>
+  </div>
+)}
+
 
         {/* PAGE 2: Your Why (Step 1 of 5) */}
         {activePage === 2 && (
-          <div className="page-step-container">
+          <div className="page-step-container page-two-modal">
+            <div className="page-two-header">
+              <svg className="vyonic-mark" viewBox="0 0 48 52" aria-hidden="true">
+                <path d="M2 4 24 16 46 4 28 29v19l-4 4-4-4V29L2 4Z" />
+                <path d="M10 7 24 14 38 7 24 25 10 7Z" fill="#777" />
+              </svg>
+              <h1 className="page-two-title">Set Up Profile &amp; Start Assessment</h1>
+              <button className="page-two-close" onClick={() => setActivePage(1.1)} aria-label="Close">×</button>
+            </div>
             <div className="stepper-bar">
-              {[1, 2, 3, 4, 5].map((stepNum) => (
+              {[1, 2, 3, 4].map((stepNum) => (
                 <div
                   key={stepNum}
                   className={`stepper-item ${stepNum === 1 ? 'active' : ''}`}
                 >
                   <div className="stepper-circle">
-                    {stepNum === 1 && <div className="inner-dot"></div>}
+                    {stepNum}
                   </div>
                   <span className="stepper-label">Step {stepNum}</span>
                 </div>
@@ -267,7 +368,7 @@ const Onboarding = () => {
               </div>
             </div>
 
-            <h1 className="page-heading">Your why</h1>
+            <h1 className="page-heading">Your Why</h1>
 
             <div className="goals-grid">
               {goalOptions.map((goal) => {
@@ -303,81 +404,95 @@ const Onboarding = () => {
 
         {/* PAGE 3: Your Profile (Step 2 of 5 - Part A) */}
         {activePage === 3 && (
-          <div className="page-step-container">
+          <div className="page-step-container page-three-modal">
+            <div className="page-two-header">
+              <svg className="vyonic-mark" viewBox="0 0 48 52" aria-hidden="true">
+                <path d="M2 4 24 16 46 4 28 29v19l-4 4-4-4V29L2 4Z" />
+                <path d="M10 7 24 14 38 7 24 25 10 7Z" fill="#777" />
+              </svg>
+            </div>
             <div className="stepper-bar">
-              {[1, 2, 3, 4, 5].map((stepNum) => (
+              {[1, 2, 3, 4].map((stepNum) => (
                 <div
                   key={stepNum}
                   className={`stepper-item ${stepNum === 2 ? 'active' : stepNum < 2 ? 'completed' : ''}`}
                 >
                   <div className="stepper-circle">
-                    {stepNum === 2 && <div className="inner-dot"></div>}
-                    {stepNum < 2 && <span className="check-icon">✓</span>}
+                    {stepNum < 2 ? '✓' : stepNum}
                   </div>
                   <span className="stepper-label">Step {stepNum}</span>
                 </div>
               ))}
               <div className="stepper-line-bg">
-                <div className="stepper-line-fill" style={{ width: '25%' }}></div>
+                <div className="stepper-line-fill" style={{ width: '33.333%' }}></div>
               </div>
             </div>
 
-            <h1 className="page-heading">Your profile</h1>
-
-            <div className="profile-row-top">
-              <div className="gender-selector">
-                <button
-                  className={`gender-btn ${gender === 'Male' ? 'active' : ''}`}
-                  onClick={() => setGender('Male')}
-                >
-                  Male
-                </button>
-                <button
-                  className={`gender-btn ${gender === 'Female' ? 'active' : ''}`}
-                  onClick={() => setGender('Female')}
-                >
-                  Female
-                </button>
-              </div>
-
-              <div className="dob-picker-box">
-                <span className="calendar-icon">📅</span>
-                <input
-                  type="date"
-                  value={dob}
-                  onChange={(e) => setDob(e.target.value)}
-                  className="dob-input"
-                />
-                <span className="age-badge">{calculateAge(dob)} years old</span>
-              </div>
+            <div className="measurement-switcher">
+              <button className={activeMeasurement === 'weight' ? 'active' : ''} onClick={() => setActiveMeasurement('weight')}>Weight</button>
+              <button className={activeMeasurement === 'height' ? 'active' : ''} onClick={() => setActiveMeasurement('height')}>Height</button>
             </div>
 
-            <div className="profile-row-sliders">
-              {/* Weight Card */}
-              <div className="slider-card">
-                <div className="slider-header">
-                  <span className="slider-label">Weight</span>
-                  <div className="unit-toggle">
-                    <button
-                      className={`unit-btn ${weightUnit === 'kg' ? 'active' : ''}`}
-                      onClick={() => setWeightUnit('kg')}
-                    >
-                      kg
-                    </button>
-                    <button
-                      className={`unit-btn ${weightUnit === 'lbs' ? 'active' : ''}`}
-                      onClick={() => setWeightUnit('lbs')}
-                    >
-                      lbs
-                    </button>
+            <div className="measurement-unit-toggle">
+              {activeMeasurement === 'weight' ? (
+                <>
+                  <button className={weightUnit === 'kg' ? 'active' : ''} onClick={() => setWeightUnit('kg')}>kg</button>
+                  <button className={weightUnit === 'lbs' ? 'active' : ''} onClick={() => setWeightUnit('lbs')}>lbs</button>
+                </>
+              ) : (
+                <>
+                  <button className={heightUnit === 'cm' ? 'active' : ''} onClick={() => setHeightUnit('cm')}>cm</button>
+                  <button className={heightUnit === 'ft' ? 'active' : ''} onClick={() => setHeightUnit('ft')}>ft</button>
+                </>
+              )}
+            </div>
+
+            <div className="measurement-value">
+              <span>{activeMeasurement === 'weight' ? displayedWeight : displayedHeight}</span>
+              <small>{activeMeasurement === 'weight' ? weightUnit : heightUnit}</small>
+            </div>
+
+            <div className="measurement-ruler">
+              <div className="ruler-center-marker"></div>
+              <div className="pure-ruler-widget">
+                <div className="ruler-scroll-viewport" ref={activeMeasurement === 'weight' ? weightRulerRef : heightRulerRef}>
+                  <div className="ruler-ticks-bar">
+                    {(activeMeasurement === 'weight' ? fullWeightTicks : fullHeightTicks).map((val) => {
+                      const currentValue = activeMeasurement === 'weight' ? weightValue : heightValue;
+                      const isSelected = val === currentValue;
+                      const displayTick = activeMeasurement === 'weight' && weightUnit === 'lbs'
+                        ? (val * 2.20462).toFixed(1)
+                        : activeMeasurement === 'height' && heightUnit === 'ft'
+                          ? (val / 30.48).toFixed(1)
+                          : val;
+                      return (
+                        <div
+                          key={val}
+                          className={`ruler-single-tick ${val % 5 === 0 ? 'major' : 'minor'} ${isSelected ? 'selected-tick' : ''}`}
+                          onClick={() => activeMeasurement === 'weight' ? setWeightValue(val) : setHeightValue(val)}
+                        >
+                          <div className="tick-line"></div>
+                          {val % 5 === 0 && <span className="tick-label-num">{displayTick}</span>}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
+              </div>
+            </div>
 
-                <div className="value-display">
-                  <span className="large-num">{weightValue}</span>
-                  <span className="unit-text">{weightUnit}</span>
-                </div>
+            <div className="page-three-footer">
+              <button className="page-three-back" onClick={() => setActivePage(2)}>Back</button>
+              <Button onClick={() => setActivePage(4)}>Continue</Button>
+            </div>
+          </div>
+        )}
 
+        {/* PAGE 3 LEGACY CONTENT RETIRED */}
+        {false && activePage === 3 && (
+          <div className="page-step-container">
+            <div className="profile-row-sliders">
+              <div className="slider-card">
                 <div className="pure-ruler-widget">
                   <div className="ruler-scroll-viewport" ref={weightRulerRef}>
                     <div className="ruler-ticks-bar">
@@ -460,30 +575,32 @@ const Onboarding = () => {
               </div>
             </div>
 
-            <div className="page2-cta-wrapper">
-              <Button onClick={() => setActivePage(4)}>Continue</Button>
-            </div>
           </div>
         )}
 
         {/* PAGE 4: Previous Training Experience (Step 2 - Part B) */}
         {activePage === 4 && (
-          <div className="page-step-container">
+          <div className="page-step-container page-four-modal">
+            <div className="page-two-header">
+              <svg className="vyonic-mark" viewBox="0 0 48 52" aria-hidden="true">
+                <path d="M2 4 24 16 46 4 28 29v19l-4 4-4-4V29L2 4Z" />
+                <path d="M10 7 24 14 38 7 24 25 10 7Z" fill="#777" />
+              </svg>
+            </div>
             <div className="stepper-bar">
-              {[1, 2, 3, 4, 5].map((stepNum) => (
+              {[1, 2, 3, 4].map((stepNum) => (
                 <div
                   key={stepNum}
-                  className={`stepper-item ${stepNum === 2 ? 'active' : stepNum < 2 ? 'completed' : ''}`}
+                  className={`stepper-item ${stepNum === 3 ? 'active' : stepNum < 3 ? 'completed' : ''}`}
                 >
                   <div className="stepper-circle">
-                    {stepNum === 2 && <div className="inner-dot"></div>}
-                    {stepNum < 2 && <span className="check-icon">✓</span>}
+                    {stepNum < 3 ? '✓' : stepNum}
                   </div>
                   <span className="stepper-label">Step {stepNum}</span>
                 </div>
               ))}
               <div className="stepper-line-bg">
-                <div className="stepper-line-fill" style={{ width: '25%' }}></div>
+                <div className="stepper-line-fill" style={{ width: '66.667%' }}></div>
               </div>
             </div>
 
@@ -505,10 +622,10 @@ const Onboarding = () => {
                       onClick={() => {
                         setYearsExp(yr);
                         if (wheelRef.current) {
-                          wheelRef.current.scrollTo({
-                            top: yr * 52,
-                            behavior: 'smooth',
-                          });
+                          const selectedItem = wheelRef.current.querySelectorAll('.wheel-item')[yr];
+                          if (selectedItem) {
+                            selectedItem.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                          }
                         }
                       }}
                     >
@@ -562,266 +679,30 @@ const Onboarding = () => {
               </div>
             </div>
 
-            <div className="page2-cta-wrapper">
-              <Button onClick={() => setActivePage(5)}>Continue</Button>
-            </div>
-          </div>
-        )}
-
-        {/* PAGE 5: Health Consents (Step 3 of 5) */}
-        {activePage === 5 && (
-          <div className="page-step-container">
-            <div className="stepper-bar">
-              {[1, 2, 3, 4, 5].map((stepNum) => (
-                <div
-                  key={stepNum}
-                  className={`stepper-item ${stepNum === 3 ? 'active' : stepNum < 3 ? 'completed' : ''}`}
-                >
-                  <div className="stepper-circle">
-                    {stepNum === 3 && <div className="inner-dot"></div>}
-                    {stepNum < 3 && <span className="check-icon">✓</span>}
-                  </div>
-                  <span className="stepper-label">Step {stepNum}</span>
-                </div>
-              ))}
-              <div className="stepper-line-bg">
-                <div className="stepper-line-fill" style={{ width: '50%' }}></div>
-              </div>
-            </div>
-
-            <h1 className="page-heading">Health consents</h1>
-
-            <div className="consents-list">
-              {consentOptions.map((consent) => {
-                const isChecked = selectedConsents.includes(consent.id);
-                return (
-                  <div
-                    key={consent.id}
-                    className={`consent-card ${isChecked ? 'selected' : ''}`}
-                    onClick={() => toggleConsent(consent.id)}
-                  >
-                    <div className="consent-text-block">
-                      <h3 className="consent-title">{consent.title}</h3>
-                      <p className="consent-subtitle">{consent.subtitle}</p>
-                    </div>
-                    <div className={`consent-check-badge ${isChecked ? 'checked' : ''}`}>
-                      {isChecked && '✓'}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="page2-cta-wrapper">
-              <Button
-                disabled={!isAllConsentsSelected}
-                onClick={() => {
-                  if (isAllConsentsSelected) {
-                    setActivePage(6);
-                  }
-                }}
-              >
-                Continue
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* PAGE 6: Confirm Your Details (Step 4 of 5 - Exactly like Figma Screenshot!) */}
-        {activePage === 6 && (
-          <div className="page-step-container">
-            <div className="stepper-bar">
-              {[1, 2, 3, 4, 5].map((stepNum) => (
-                <div
-                  key={stepNum}
-                  className={`stepper-item ${stepNum === 4 ? 'active' : stepNum < 4 ? 'completed' : ''}`}
-                >
-                  <div className="stepper-circle">
-                    {stepNum === 4 && <div className="inner-dot"></div>}
-                    {stepNum < 4 && <span className="check-icon">✓</span>}
-                  </div>
-                  <span className="stepper-label">Step {stepNum}</span>
-                </div>
-              ))}
-              <div className="stepper-line-bg">
-                <div className="stepper-line-fill" style={{ width: '75%' }}></div>
-              </div>
-            </div>
-
-            <h1 className="page-heading">Confirm your details</h1>
-
-            <div className="figma-confirm-grid">
-              {/* Goal — label + edit icon outside, chips below */}
-              <div className="confirm-section">
-                <div className="confirm-label-row">
-                  <label className="section-meta-label">Goal</label>
-                  <span className="edit-icon-btn" onClick={() => setActivePage(2)}>✏️</span>
-                </div>
-                <div className="chips-row">
-                  {selectedGoals.map((g) => (
-                    <div key={g} className="figma-chip">
-                      {g}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Gender, DOB, Weight — label + edit icon OUTSIDE, value box BELOW */}
-              <div className="confirm-three-col">
-                <div className="confirm-field-wrapper">
-                  <div className="confirm-label-row">
-                    <span className="section-meta-label">Gender</span>
-                    <span className="edit-icon-btn" onClick={() => setActivePage(3)}>✏️</span>
-                  </div>
-                  <div className="confirm-value-box">
-                    <span className="box-val-bold">{gender}</span>
-                  </div>
-                </div>
-
-                <div className="confirm-field-wrapper">
-                  <div className="confirm-label-row">
-                    <span className="section-meta-label">Date of birth</span>
-                    <span className="edit-icon-btn" onClick={() => setActivePage(3)}>✏️</span>
-                  </div>
-                  <div className="confirm-value-box">
-                    <span className="box-val-bold">  {new Date(dob).toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      })}</span>
-                  </div>
-                </div>
-
-                <div className="confirm-field-wrapper">
-                  <div className="confirm-label-row">
-                    <span className="section-meta-label">Weight</span>
-                    <span className="edit-icon-btn" onClick={() => setActivePage(3)}>✏️</span>
-                  </div>
-                  <div className="confirm-value-box">
-                    <span className="box-val-bold">{weightValue} <span className="box-unit">{weightUnit}</span></span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Height, Training exp, Training frequency — label + edit icon OUTSIDE */}
-              <div className="confirm-three-col">
-                <div className="confirm-field-wrapper">
-                  <div className="confirm-label-row">
-                    <span className="section-meta-label">Height</span>
-                    <span className="edit-icon-btn" onClick={() => setActivePage(3)}>✏️</span>
-                  </div>
-                  <div className="confirm-value-box">
-                    <span className="box-val-bold">{heightValue} <span className="box-unit">{heightUnit}</span></span>
-                  </div>
-                </div>
-
-                <div className="confirm-field-wrapper">
-                  <div className="confirm-label-row">
-                    <span className="section-meta-label">Training experience</span>
-                    <span className="edit-icon-btn" onClick={() => setActivePage(4)}>✏️</span>
-                  </div>
-                  <div className="confirm-value-box">
-                    <span className="box-val-bold">{yearsExp} <span className="box-unit">years</span></span>
-                  </div>
-                </div>
-
-                <div className="confirm-field-wrapper">
-                  <div className="confirm-label-row">
-                    <span className="section-meta-label">Training frequency</span>
-                    <span className="edit-icon-btn" onClick={() => setActivePage(4)}>✏️</span>
-                  </div>
-                  <div className="confirm-value-box">
-                    <span className="box-val-bold">{frequency}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Injuries or conditions — label + edit icon outside, value box below */}
-              <div className="confirm-section">
-                <div className="confirm-label-row">
-                  <span className="section-meta-label">Injuries or conditions</span>
-                  <span className="edit-icon-btn" onClick={() => setActivePage(4)}>✏️</span>
-                </div>
-                <div className="confirm-value-box full-width">
-                  <span className="box-val-muted">{injuries || 'None'}</span>
-                </div>
-              </div>
-
-              {/* Health consents — label + edit icon outside, chips below */}
-              <div className="confirm-section">
-                <div className="confirm-label-row">
-                  <label className="section-meta-label">Health consents</label>
-                  <span className="edit-icon-btn" onClick={() => setActivePage(5)}>✏️</span>
-                </div>
-                <div className="chips-row">
-                  <div className="figma-chip">Data use</div>
-                  <div className="figma-chip">Professional visibility</div>
-                  <div className="figma-chip">Follow up</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="page2-cta-wrapper">
-              <Button onClick={() => setShowAssessmentModal(true)}>Confirm & Continue</Button>
-            </div>
-          </div>
-        )}
-
-        {/* VYONIC ASSESSMENT MODAL POPUP */}
-        {showAssessmentModal && (
-          <div className="assessment-modal-overlay">
-            <div className="assessment-modal-card">
-              <h2 className="modal-title">The VYONIC assessment</h2>
-              
-              <div className="modal-bullet-list">
-                <div className="modal-bullet-item">
-                  <div className="modal-badge-circle">1</div>
-                  <p className="modal-inline-text">
-                    <strong>We understand you</strong> - where you are. Who you will become
-                  </p>
-                </div>
-
-                <div className="modal-bullet-item">
-                  <div className="modal-badge-circle">2</div>
-                  <p className="modal-inline-text">
-                    <strong>We assess you</strong> - a precise read of your body, your habits, your capacity
-                  </p>
-                </div>
-
-                <div className="modal-bullet-item">
-                  <div className="modal-badge-circle">3</div>
-                  <p className="modal-inline-text">
-                    <strong>We build your program</strong> - training, recovery, mindset: one connected system.
-                  </p>
-                </div>
-              </div>
-
-              <div className="modal-cta-wrapper">
-                <Button
-                  onClick={() => {
-                    setShowAssessmentModal(false);
-                    setActivePage(7);
-                  }}
-                >
-                  Begin
-                </Button>
-              </div>
+            <div className="page-three-footer">
+              <button className="page-three-back" onClick={() => setActivePage(3)}>Back</button>
+              <Button onClick={() => setActivePage(7)}>Continue</Button>
             </div>
           </div>
         )}
 
         {/* PAGE 7: Assessment Completed / Final Step */}
         {activePage === 7 && (
-          <div className="page-step-container">
+          <div className="page-step-container page-seven-modal">
+            <div className="page-two-header">
+              <svg className="vyonic-mark" viewBox="0 0 48 52" aria-hidden="true">
+                <path d="M2 4 24 16 46 4 28 29v19l-4 4-4-4V29L2 4Z" />
+                <path d="M10 7 24 14 38 7 24 25 10 7Z" fill="#777" />
+              </svg>
+            </div>
             <div className="stepper-bar">
-              {[1, 2, 3, 4, 5].map((stepNum) => (
+              {[1, 2, 3, 4].map((stepNum) => (
                 <div
                   key={stepNum}
-                  className={`stepper-item ${stepNum === 5 ? 'active' : 'completed'}`}
+                  className={`stepper-item ${stepNum === 4 ? 'active' : 'completed'}`}
                 >
                   <div className="stepper-circle">
-                    {stepNum === 5 && <div className="inner-dot"></div>}
-                    {stepNum < 5 && <span className="check-icon">✓</span>}
+                    {stepNum < 4 ? '✓' : stepNum}
                   </div>
                   <span className="stepper-label">Step {stepNum}</span>
                 </div>
@@ -832,12 +713,12 @@ const Onboarding = () => {
             </div>
 
             <h1 className="page-heading">Assessment Scheduled!</h1>
-            <p style={{ color: '#8e9bb0', fontSize: '18px', marginBottom: '32px' }}>
+            <p className="page-seven-copy">
               Your baseline profile and health consents have been verified. Welcome to VYONIC!
             </p>
 
-            <div className="page2-cta-wrapper">
-              <Button onClick={() => setActivePage(1)}>Back to Start</Button>
+            <div className="page-three-footer page-seven-footer">
+              <Button onClick={() => window.location.href = '/dashboard'}>Back to Start</Button>
             </div>
           </div>
         )}
