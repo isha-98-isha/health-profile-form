@@ -1,14 +1,22 @@
-// src/pages/Dashboard/Dashboard.jsx
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import "./dashboard.css"; // make sure you created the CSS file
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import VyonicLogo from '../../components/VyonicLogo';
+import './dashboard.css';
 
 export default function Dashboard() {
   const navigate = useNavigate();
 
   return (
     <div className="dashboard">
-      <h1>Trainer Dashboard</h1>
+      <div className="dashboard-header">
+        <VyonicLogo width={64} height={58} />
+        <span className="dashboard-brand-title">VYONIC TRAINER</span>
+      </div>
+
+      <div className="dashboard-welcome">
+        <h1>Trainer Dashboard</h1>
+        <p>Manage trainee registrations, assessments, and performance tracking.</p>
+      </div>
 
       {/* Dashboard content grid */}
       <div className="dashboard-content">
@@ -31,7 +39,7 @@ export default function Dashboard() {
       {/* Primary action button */}
       <button
         className="new-assessment-btn"
-        onClick={() => navigate("/onboarding")}
+        onClick={() => navigate('/onboarding')}
       >
         New Assessment
       </button>

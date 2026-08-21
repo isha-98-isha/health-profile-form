@@ -1,77 +1,106 @@
 .dashboard {
   width: 100%;
   min-height: 100vh;
-  background: #030712; 
+  min-height: 100dvh;
+  background-color: var(--page-bg, #000000);
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 20px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 40px 20px;
   box-sizing: border-box;
+  font-family: var(--font-family, 'Inter', sans-serif);
+  color: var(--foreground, #ffffff);
 }
 
-/* Dashboard Header */
-.dashboard h1 {
-  font-size: 50px;
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 36px;
+}
+
+.dashboard-brand-title {
+  font-size: 18px;
   font-weight: 700;
-  color: #f7f9fc; 
-  margin-bottom: 32px;
-  text-align: center;
+  letter-spacing: 1.5px;
+  color: #ffffff;
 }
 
-/* Dashboard Content Area */
+.dashboard-welcome {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.dashboard-welcome h1 {
+  font-size: 36px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.dashboard-welcome p {
+  font-size: 15px;
+  color: #9ca3af;
+}
+
 .dashboard-content {
   width: 100%;
-  max-width: 960px;
+  max-width: 900px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
 }
 
-/* Card Style for Dashboard Sections */
 .dashboard-card {
-  background: #ffffff;
-  border: var(--glass-border);
-  border-radius: 8px;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
   padding: 24px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow:
+    3.5px 0 7.5px 0 rgba(255, 255, 255, 0.15) inset,
+    1px 0 5px 0 rgba(255, 255, 255, 0.15) inset,
+    0 4px 16px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
 .dashboard-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 .dashboard-card h2 {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
-  color: #334155; /* slate-700 */
-  margin-bottom: 12px;
+  color: #ffffff;
+  margin-bottom: 10px;
 }
 
 .dashboard-card p {
-  font-size: 14px;
-  color: #64748b; /* slate-500 */
+  font-size: 13px;
+  color: #9ca3af;
   line-height: 1.5;
 }
 
-/* New Assessment Button */
 .new-assessment-btn {
-  margin-top: 40px;
-  padding: 14px 28px;
-  font-size: 20px;
+  margin-top: 36px;
+  padding: 14px 32px;
+  font-size: 15px;
   font-weight: 600;
   color: #ffffff;
-  background: linear-gradient(90deg, #2c5ff6 0%, #1e40af 100%);
+  background-color: #3b6fd9;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: background 0.25s ease, transform 0.2s ease;
+  box-shadow: 0 4px 14px rgba(59, 111, 217, 0.4);
+  transition: background-color 0.15s ease, transform 0.15s ease;
 }
 
 .new-assessment-btn:hover {
-  background: linear-gradient(90deg, #1e40af 0%, #2c5ff6 100%);
-  transform: translateY(-2px);
+  background-color: #4d7bff;
+  transform: translateY(-1px);
 }
 
 .new-assessment-btn:active {
