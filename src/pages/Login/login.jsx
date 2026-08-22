@@ -75,7 +75,7 @@ function Login() {
 						<button className="submit-button" type="submit" disabled={status.type === 'loading'}>{status.type === 'loading' ? 'Please wait...' : 'Continue'}</button>
 						{status.message && <p className={`form-status ${status.type}`} role="status">{status.message}</p>}
 					</form>
-					<p className="auth-switch">New to VYONIC? <Link to="/signup">Create an account</Link></p>
+					<p className="auth-switch">New to VYONIC Training app? <Link to="/signup">Create an account</Link></p>
 				</div>
 			</section>
 		</main>
