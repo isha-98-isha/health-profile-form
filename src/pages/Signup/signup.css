@@ -1,0 +1,3 @@
+.signup-card { min-height: 510px; }
+.signup-card .auth-visual { min-height: 510px; }
+@media (max-width: 620px) { .signup-card .auth-visual { min-height: 130px; max-height: 130px; } }
