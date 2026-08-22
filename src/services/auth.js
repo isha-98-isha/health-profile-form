@@ -3,10 +3,10 @@ import axios from 'axios';
 const AUTH_STORAGE_KEY = 'vyonic-auth-user';
 const TOKEN_STORAGE_KEY = 'vyonic-auth-token';
 
-const getLoginUrl = () => process.env.REACT_APP_LOGIN_API_URL || 'http://5.189.144.230:9000/auth/v1/login';
-const getRegisterUrl = () => process.env.REACT_APP_REGISTER_API_URL || 'http://5.189.144.230:9000/auth/v2/register';
+const getLoginUrl = () => process.env.REACT_APP_LOGIN_API_URL || '/api/auth/v1/login';
+const getRegisterUrl = () => process.env.REACT_APP_REGISTER_API_URL || '/api/auth/v2/register';
 // Adding the logout URL from your Postman setup
-const getLogoutUrl = () => process.env.REACT_APP_LOGOUT_API_URL || 'http://5.189.144.230:9000/auth/v1/logout';
+const getLogoutUrl = () => process.env.REACT_APP_LOGOUT_API_URL || '/api/auth/v1/logout';
 
 const parseApiError = (error, fallbackMessage) => {
 	if (error.response?.data) {
