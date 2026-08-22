@@ -339,29 +339,30 @@
   color: #6b7280;
 }
 
-/* Date Field with Calendar Icon */
+/* Date Field with Custom Calendar Icon */
 .date-input-wrapper {
   position: relative;
   width: 100%;
 }
 
 .date-input {
-  padding-right: 38px;
+  color-scheme: dark;
+  padding-right: 42px;
   cursor: pointer;
 }
 
-.date-input.date-empty::-webkit-datetime-edit {
+.date-input::-webkit-calendar-picker-indicator {
+  display: none !important;
+  -webkit-appearance: none;
+  background: none !important;
   opacity: 0;
+  width: 0;
+  height: 0;
 }
 
-.date-placeholder {
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #6b7280;
-  font-size: 14px;
-  pointer-events: none;
+.date-input::-webkit-inner-spin-button,
+.date-input::-webkit-clear-button {
+  display: none;
 }
 
 .calendar-icon {
@@ -369,9 +370,14 @@
   right: 14px;
   top: 50%;
   transform: translateY(-50%);
-  pointer-events: none;
-  font-size: 14px;
-  opacity: 0.8;
+  color: #9ca3af;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: color 0.15s ease;
+}
+
+.calendar-icon:hover {
+  color: #ffffff;
 }
 
 /* Select Field */

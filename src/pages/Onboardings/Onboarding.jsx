@@ -2,11 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Onboarding.css';
 import VyonicLogo from '../../components/VyonicLogo';
+import { registerClient } from '../../services/auth';
 
 const Onboarding = () => {
   const navigate = useNavigate();
   // We start at 1.1 (Register Client)
   const [activePage, setActivePage] = useState(1.1);
+  const [isRegistering, setIsRegistering] = useState(false);
 
   // Page 1.1 Registration State
   const [formData, setFormData] = useState({
@@ -135,11 +137,22 @@ const Onboarding = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleRegisterNext = () => {
+  const handleRegisterNext = async () => {
     if (validate()) {
-      setActivePage(2);
+      setIsRegistering(true);
+      try {
+        await registerClient(formData);
+        // Move to the next page only if the API call succeeds
+        setActivePage(2);
+      } catch (error) {
+        console.error("Health registration error:", error.message);
+        alert(error.message || 'Unable to connect to the registration service');
+      } finally {
+        setIsRegistering(false);
+      }
     }
   };
+
 
   // Full Weight Ruler Array (30kg to 160kg)
   const fullWeightTicks = Array.from({ length: 131 }, (_, i) => 30 + i);
@@ -419,14 +432,45 @@ const Onboarding = () => {
                 <div className="form-field-wrapper">
                   <div className={`date-input-wrapper ${errors.dob ? 'input-error' : ''}`}>
                     <input
-                      type="date"
+                      type={formData.dob ? 'date' : 'text'}
+                      placeholder="Date of Birth *"
                       name="dob"
                       value={formData.dob}
                       onChange={handleChange}
-                      className={`vy-input date-input ${!formData.dob ? 'date-empty' : ''}`}
+                      onFocus={(e) => (e.target.type = 'date')}
+                      onBlur={(e) => {
+                        if (!e.target.value) e.target.type = 'text';
+                      }}
+                      onClick={(e) => {
+                        e.target.type = 'date';
+                        if (e.target.showPicker) e.target.showPicker();
+                      }}
+                      className="vy-input date-input"
                     />
-                    {!formData.dob && <span className="date-placeholder">Date of Birth *</span>}
-                    <span className="calendar-icon">📅</span>
+                    <svg
+                      className="calendar-icon"
+                      viewBox="0 0 24 24"
+                      width="18"
+                      height="18"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      onClick={(e) => {
+                        const input = e.currentTarget.parentElement?.querySelector('input');
+                        if (input) {
+                          input.type = 'date';
+                          input.focus();
+                          if (input.showPicker) input.showPicker();
+                        }
+                      }}
+                    >
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                      <line x1="16" y1="2" x2="16" y2="6" />
+                      <line x1="8" y1="2" x2="8" y2="6" />
+                      <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
                   </div>
                   {errors.dob && <span className="error-hint">{errors.dob}</span>}
                 </div>
@@ -455,8 +499,9 @@ const Onboarding = () => {
                   type="button"
                   className="btn-primary-gradient"
                   onClick={handleRegisterNext}
+                  disabled={isRegistering}
                 >
-                  Register Client &amp; With Basic Details Start Assessment
+                  {isRegistering ? 'Registering...' : 'Register Client & With Basic Details Start Assessment'}
                 </button>
               </div>
             </form>
