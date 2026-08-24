@@ -12,7 +12,33 @@
   box-sizing: border-box;
   font-family: var(--font-family, 'Inter', sans-serif);
   color: var(--foreground, #ffffff);
+  position: relative; /* important for absolute positioning */
 }
+
+.logout-btn {
+  background-color: #351d1d;
+  color: #fff;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, opacity 0.2s ease;
+
+  position: absolute;   /* take it out of header flow */
+  top: 20px;            /* adjust vertical placement */
+  right: 20px;          /* push to right edge of dashboard */
+}
+
+.logout-btn:hover {
+  background-color: #5a2e0f;
+}
+
+.logout-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 
 .dashboard-header {
   display: flex;

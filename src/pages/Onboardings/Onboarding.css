@@ -522,11 +522,7 @@
   color: #9ca3af;
   margin: 2px 0 0;
 }
-
-/* ==========================================================================
-   PAGE 3: MEASUREMENT RULER STYLES
-   ========================================================================== */
-
+   /*PAGE 3: MEASUREMENT RULER STYLES */
 .pill-toggle-container {
   display: flex;
   width: 100%;
@@ -835,6 +831,7 @@
   flex-direction: column;
   gap: 6px;
   width: 100%;
+  position: relative;
 }
 
 .field-title-label {
@@ -869,7 +866,7 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
-  z-index: 50;
+   z-index: 999;
   overflow: hidden;
   max-height: 200px;
   overflow-y: auto;

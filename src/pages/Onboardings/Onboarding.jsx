@@ -14,7 +14,7 @@ const Onboarding = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    countryCode: '+971',
+    countryCode: '+91',
     phone: '',
     email: '',
     dob: '',
@@ -36,8 +36,9 @@ const Onboarding = () => {
   // Page 4 State (Training Experience)
   const [yearsExp, setYearsExp] = useState(21);
   const [frequency, setFrequency] = useState('Once a week');
-  const [injuries, setInjuries] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [injuries, setInjuries] = useState('');
+  
 
   // Scroll Wheel and Ruler Refs
   const wheelRef = useRef(null);
