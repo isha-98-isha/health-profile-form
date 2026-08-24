@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import './Onboarding.css';
 import VyonicLogo from '../../components/VyonicLogo';
+import CountryCodeSelect from '../../components/CountryCodeSelect/CountryCodeSelect';
 import { registerClient } from '../../services/auth';
 
 const Onboarding = () => {
@@ -14,7 +16,7 @@ const Onboarding = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    countryCode: '+91',
+    countryCode: '+971',
     phone: '',
     email: '',
     dob: '',
@@ -24,7 +26,7 @@ const Onboarding = () => {
   const [errors, setErrors] = useState({});
 
   // Page 2 State (Goals)
-  const [selectedGoals, setSelectedGoals] = useState(['Longevity', 'Build strength', 'Body re-composition']);
+  const [selectedGoals, setSelectedGoals] = useState([]);
 
   // Page 3 State (Measurements)
   const [weightUnit, setWeightUnit] = useState('kg');
@@ -38,7 +40,7 @@ const Onboarding = () => {
   const [frequency, setFrequency] = useState('Once a week');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [injuries, setInjuries] = useState('');
-  
+
 
   // Scroll Wheel and Ruler Refs
   const wheelRef = useRef(null);
@@ -47,8 +49,14 @@ const Onboarding = () => {
   const hasWheelDraggedRef = useRef(false);
   const suppressWheelClickRef = useRef(false);
   const wheelScrollTimeoutRef = useRef(null);
-  const weightRulerRef = useRef(null);
-  const heightRulerRef = useRef(null);
+
+  // Page 3 Ruler Refs & Constants
+  const rulerRef = useRef(null);
+  const isDraggingRulerRef = useRef(false);
+  const rulerDragStartRef = useRef({ x: 0, scrollLeft: 0 });
+  const hasRulerDraggedRef = useRef(false);
+  const suppressRulerClickRef = useRef(false);
+  const rulerScrollTimeoutRef = useRef(null);
 
   // Goal options with clean titles and subtitles
   const goalOptions = [
@@ -112,6 +120,55 @@ const Onboarding = () => {
     }
   };
 
+  const getTodayDateString = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const handleDobFocus = () => {
+    if (!formData.dob) {
+      setFormData((prev) => ({ ...prev, dob: '2001-01-01' }));
+      if (errors.dob) {
+        setErrors((prev) => ({ ...prev, dob: '' }));
+      }
+    }
+  };
+
+  const handleDobClick = (e) => {
+    if (!formData.dob) {
+      setFormData((prev) => ({ ...prev, dob: '2001-01-01' }));
+      if (errors.dob) {
+        setErrors((prev) => ({ ...prev, dob: '' }));
+      }
+    }
+    if (e.target.showPicker) {
+      try {
+        e.target.showPicker();
+      } catch (err) { }
+    }
+  };
+
+  const handleCalendarIconClick = (e) => {
+    const input = e.currentTarget.parentElement?.querySelector('input');
+    if (!formData.dob) {
+      setFormData((prev) => ({ ...prev, dob: '2001-01-01' }));
+      if (errors.dob) {
+        setErrors((prev) => ({ ...prev, dob: '' }));
+      }
+    }
+    if (input) {
+      input.focus();
+      if (input.showPicker) {
+        try {
+          input.showPicker();
+        } catch (err) { }
+      }
+    }
+  };
+
   const validate = () => {
     const newErrors = {};
 
@@ -132,6 +189,8 @@ const Onboarding = () => {
 
     if (!formData.dob.trim()) {
       newErrors.dob = 'Date of birth is required';
+    } else if (formData.dob > getTodayDateString()) {
+      newErrors.dob = 'Date of birth cannot be in the future';
     }
 
     setErrors(newErrors);
@@ -147,7 +206,7 @@ const Onboarding = () => {
         setActivePage(2);
       } catch (error) {
         console.error("Health registration error:", error.message);
-        alert(error.message || 'Unable to connect to the registration service');
+        toast.error(error.message || 'Unable to connect to the registration service');
       } finally {
         setIsRegistering(false);
       }
@@ -277,22 +336,174 @@ const Onboarding = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePage]);
 
+  // Ruler constants
+  const RULER_STEP = 30; // 20px tick item width + 10px gap
+  const WEIGHT_MIN = 30;
+  const WEIGHT_MAX = 160;
+  const HEIGHT_MIN = 100;
+  const HEIGHT_MAX = 220;
+
+  const handleRulerPointerDown = (e) => {
+    if (!rulerRef.current) return;
+    isDraggingRulerRef.current = true;
+    hasRulerDraggedRef.current = false;
+    suppressRulerClickRef.current = false;
+    rulerDragStartRef.current = {
+      x: e.clientX,
+      scrollLeft: rulerRef.current.scrollLeft,
+    };
+    rulerRef.current.style.cursor = 'grabbing';
+  };
+
   useEffect(() => {
-    if (activePage === 3) {
-      if (weightRulerRef.current && activeMeasurement === 'weight') {
-        const activeTick = weightRulerRef.current.querySelector('.selected-tick');
-        if (activeTick) {
-          activeTick.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    const handleRulerPointerMove = (e) => {
+      if (!isDraggingRulerRef.current || !rulerRef.current) return;
+      const deltaX = e.clientX - rulerDragStartRef.current.x;
+      if (Math.abs(deltaX) > 4) {
+        hasRulerDraggedRef.current = true;
+        suppressRulerClickRef.current = true;
+      }
+      if (hasRulerDraggedRef.current) {
+        const newScrollLeft = rulerDragStartRef.current.scrollLeft - deltaX;
+        rulerRef.current.scrollLeft = newScrollLeft;
+
+        const minVal = activeMeasurement === 'weight' ? WEIGHT_MIN : HEIGHT_MIN;
+        const maxVal = activeMeasurement === 'weight' ? WEIGHT_MAX : HEIGHT_MAX;
+        const idx = Math.round(newScrollLeft / RULER_STEP);
+        const currentCalculatedVal = Math.max(minVal, Math.min(maxVal, minVal + idx));
+        if (activeMeasurement === 'weight') {
+          setWeightValue(currentCalculatedVal);
+        } else {
+          setHeightValue(currentCalculatedVal);
         }
       }
-      if (heightRulerRef.current && activeMeasurement === 'height') {
-        const activeTick = heightRulerRef.current.querySelector('.selected-tick');
-        if (activeTick) {
-          activeTick.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-        }
+    };
+
+    const handleRulerPointerUp = () => {
+      if (!isDraggingRulerRef.current) return;
+      isDraggingRulerRef.current = false;
+      if (rulerRef.current) {
+        rulerRef.current.style.cursor = 'grab';
       }
+
+      if (rulerRef.current && hasRulerDraggedRef.current) {
+        const minVal = activeMeasurement === 'weight' ? WEIGHT_MIN : HEIGHT_MIN;
+        const maxVal = activeMeasurement === 'weight' ? WEIGHT_MAX : HEIGHT_MAX;
+        const idx = Math.round(rulerRef.current.scrollLeft / RULER_STEP);
+        const finalVal = Math.max(minVal, Math.min(maxVal, minVal + idx));
+        if (activeMeasurement === 'weight') {
+          setWeightValue(finalVal);
+        } else {
+          setHeightValue(finalVal);
+        }
+        rulerRef.current.scrollTo({
+          left: (finalVal - minVal) * RULER_STEP,
+          behavior: 'smooth',
+        });
+      }
+
+      setTimeout(() => {
+        hasRulerDraggedRef.current = false;
+        suppressRulerClickRef.current = false;
+      }, 60);
+    };
+
+    window.addEventListener('pointermove', handleRulerPointerMove);
+    window.addEventListener('pointerup', handleRulerPointerUp);
+    return () => {
+      window.removeEventListener('pointermove', handleRulerPointerMove);
+      window.removeEventListener('pointerup', handleRulerPointerUp);
+    };
+  }, [activeMeasurement]);
+
+  // Touch swipe & momentum scroll handler
+  const handleRulerScroll = () => {
+    if (isDraggingRulerRef.current || !rulerRef.current) return;
+    const minVal = activeMeasurement === 'weight' ? WEIGHT_MIN : HEIGHT_MIN;
+    const maxVal = activeMeasurement === 'weight' ? WEIGHT_MAX : HEIGHT_MAX;
+    const idx = Math.round(rulerRef.current.scrollLeft / RULER_STEP);
+    const currentCalculatedVal = Math.max(minVal, Math.min(maxVal, minVal + idx));
+
+    if (activeMeasurement === 'weight') {
+      if (currentCalculatedVal !== weightValue) setWeightValue(currentCalculatedVal);
+    } else {
+      if (currentCalculatedVal !== heightValue) setHeightValue(currentCalculatedVal);
     }
+
+    clearTimeout(rulerScrollTimeoutRef.current);
+    rulerScrollTimeoutRef.current = setTimeout(() => {
+      if (!rulerRef.current || isDraggingRulerRef.current) return;
+      const finalIdx = Math.round(rulerRef.current.scrollLeft / RULER_STEP);
+      const finalVal = Math.max(minVal, Math.min(maxVal, minVal + finalIdx));
+      rulerRef.current.scrollTo({
+        left: (finalVal - minVal) * RULER_STEP,
+        behavior: 'smooth',
+      });
+    }, 100);
+  };
+
+  // Mouse wheel listener with preventDefault to prevent parent scroll
+  useEffect(() => {
+    const el = rulerRef.current;
+    if (!el || activePage !== 3) return;
+
+    const handleWheel = (e) => {
+      e.preventDefault();
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      if (Math.abs(delta) < 1) return;
+      const direction = delta > 0 ? 1 : -1;
+      const minVal = activeMeasurement === 'weight' ? WEIGHT_MIN : HEIGHT_MIN;
+      const maxVal = activeMeasurement === 'weight' ? WEIGHT_MAX : HEIGHT_MAX;
+      const currentVal = activeMeasurement === 'weight' ? weightValue : heightValue;
+      const nextVal = Math.min(Math.max(currentVal + direction, minVal), maxVal);
+      if (nextVal !== currentVal) {
+        if (activeMeasurement === 'weight') {
+          setWeightValue(nextVal);
+        } else {
+          setHeightValue(nextVal);
+        }
+        el.scrollTo({
+          left: (nextVal - minVal) * RULER_STEP,
+          behavior: 'smooth',
+        });
+      }
+    };
+
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      el.removeEventListener('wheel', handleWheel);
+    };
   }, [activePage, activeMeasurement, weightValue, heightValue]);
+
+  // Click on tick / number directly
+  const handleRulerTickClick = (val) => {
+    if (suppressRulerClickRef.current) return;
+    const minVal = activeMeasurement === 'weight' ? WEIGHT_MIN : HEIGHT_MIN;
+    if (activeMeasurement === 'weight') {
+      setWeightValue(val);
+    } else {
+      setHeightValue(val);
+    }
+    if (rulerRef.current) {
+      rulerRef.current.scrollTo({
+        left: (val - minVal) * RULER_STEP,
+        behavior: 'smooth',
+      });
+    }
+  };
+
+  // Sync scroll position when navigating to Page 3 or toggling measurement type
+  useEffect(() => {
+    if (activePage === 3 && rulerRef.current && !isDraggingRulerRef.current) {
+      const minVal = activeMeasurement === 'weight' ? WEIGHT_MIN : HEIGHT_MIN;
+      const val = activeMeasurement === 'weight' ? weightValue : heightValue;
+      rulerRef.current.scrollTo({
+        left: (val - minVal) * RULER_STEP,
+        behavior: 'auto',
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activePage, activeMeasurement]);
 
   // Stepper Header component
   const renderStepper = (currentStep) => {
@@ -385,23 +596,15 @@ const Onboarding = () => {
               </div>
 
               {/* Row 2: Phone with Country Code */}
-              <div className="form-field-wrapper">
+              <div className="form-field-wrapper phone-field-wrapper">
                 <div className={`phone-input-container ${errors.phone ? 'input-error' : ''}`}>
-                  <div className="country-code-select-box">
-                    <select
-                      name="countryCode"
-                      value={formData.countryCode}
-                      onChange={handleChange}
-                      className="country-code-native-select"
-                    >
-                      <option value="+971">AE +971</option>
-                      <option value="+91">IN +91</option>
-                      <option value="+1">US +1</option>
-                      <option value="+44">UK +44</option>
-                      <option value="+61">AU +61</option>
-                    </select>
-                    <span className="select-chevron">▾</span>
-                  </div>
+                  <CountryCodeSelect
+                    value={formData.countryCode}
+                    defaultIso="AE"
+                    onChange={(dialCode) => {
+                      setFormData((prev) => ({ ...prev, countryCode: dialCode }));
+                    }}
+                  />
                   <div className="phone-divider" />
                   <input
                     type="tel"
@@ -437,15 +640,10 @@ const Onboarding = () => {
                       placeholder="Date of Birth *"
                       name="dob"
                       value={formData.dob}
+                      max={getTodayDateString()}
                       onChange={handleChange}
-                      onFocus={(e) => (e.target.type = 'date')}
-                      onBlur={(e) => {
-                        if (!e.target.value) e.target.type = 'text';
-                      }}
-                      onClick={(e) => {
-                        e.target.type = 'date';
-                        if (e.target.showPicker) e.target.showPicker();
-                      }}
+                      onFocus={handleDobFocus}
+                      onClick={handleDobClick}
                       className="vy-input date-input"
                     />
                     <svg
@@ -458,14 +656,7 @@ const Onboarding = () => {
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      onClick={(e) => {
-                        const input = e.currentTarget.parentElement?.querySelector('input');
-                        if (input) {
-                          input.type = 'date';
-                          input.focus();
-                          if (input.showPicker) input.showPicker();
-                        }
-                      }}
+                      onClick={handleCalendarIconClick}
                     >
                       <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                       <line x1="16" y1="2" x2="16" y2="6" />
@@ -566,6 +757,7 @@ const Onboarding = () => {
                 type="button"
                 className="btn-primary-gradient"
                 onClick={() => setActivePage(3)}
+                disabled={selectedGoals.length === 0}
               >
                 Continue
               </button>
@@ -667,7 +859,9 @@ const Onboarding = () => {
                 <div className="ruler-center-indicator" />
                 <div
                   className="ruler-viewport"
-                  ref={activeMeasurement === 'weight' ? weightRulerRef : heightRulerRef}
+                  ref={rulerRef}
+                  onPointerDown={handleRulerPointerDown}
+                  onScroll={handleRulerScroll}
                 >
                   <div className="ruler-ticks-track">
                     {(activeMeasurement === 'weight' ? fullWeightTicks : fullHeightTicks).map((val) => {
@@ -685,11 +879,7 @@ const Onboarding = () => {
                           key={val}
                           className={`ruler-tick-item ${val % 5 === 0 ? 'major-tick' : 'minor-tick'} ${isSelected ? 'selected-tick' : ''
                             }`}
-                          onClick={() =>
-                            activeMeasurement === 'weight'
-                              ? setWeightValue(val)
-                              : setHeightValue(val)
-                          }
+                          onClick={() => handleRulerTickClick(val)}
                         >
                           <div className="tick-line-bar" />
                           {val % 5 === 0 && (
@@ -882,7 +1072,10 @@ const Onboarding = () => {
               <button
                 type="button"
                 className="btn-primary-gradient"
-                onClick={() => navigate('/dashboard')}
+                onClick={() => {
+                  toast.success('Assesment Slot Created and Booked Successfully');
+                  navigate('/dashboard');
+                }}
               >
                 Back to Dashboard
               </button>

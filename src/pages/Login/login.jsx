@@ -4,6 +4,7 @@ import logo from '../../assets/vyonic_logo_small.webp';
 import heroLogo from '../../assets/vyonic_log_big.webp';
 import { login } from '../../services/auth';
 import './login.css';
+import { FaEye, FaEyeSlash } from "react-icons/fa"; // eye icons
 
 function Login() {
 	const navigate = useNavigate();
@@ -62,11 +63,27 @@ function Login() {
 						{errors.email && <span className="field-error">{errors.email}</span>}
 
 						<label htmlFor="login-password">Password</label>
-						<div className="password-field">
-							<input id="login-password" name="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" value={form.password} onChange={updateField} placeholder="Enter your password" aria-invalid={Boolean(errors.password)} />
-							<button type="button" className="visibility-button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? 'Hide' : 'Show'}</button>
-						</div>
-						{errors.password && <span className="field-error">{errors.password}</span>}
+							<div className="password-field">
+							<input
+								id="login-password"
+								name="password"
+								type={showPassword ? "text" : "password"}
+								autoComplete="current-password"
+								value={form.password}
+								onChange={updateField}
+								placeholder="Enter your password"
+								aria-invalid={Boolean(errors.password)}
+							/>
+							<button
+								type="button"
+								className="visibility-button"
+								onClick={() => setShowPassword((visible) => !visible)}
+								aria-label={showPassword ? "Hide password" : "Show password"}
+							>
+								{showPassword ? <FaEyeSlash /> : <FaEye />}
+							</button>
+							</div>
+							{errors.password && <span className="field-error">{errors.password}</span>}
 
 						<div className="auth-options">
 							<label className="remember-option"><input name="remember" type="checkbox" checked={form.remember} onChange={updateField} /> Keep me signed in</label>
