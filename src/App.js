@@ -1,5 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Dashboard from './pages/Dashboard/dashboard';
 import Onboarding from './pages/Onboardings/Onboarding';
 import Login from './pages/Login/login';
@@ -9,6 +11,7 @@ function App() {
   return (
     <BrowserRouter>
       <div className="App">
+        <ToastContainer position="bottom-right" autoClose={5000} theme="dark" />
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
