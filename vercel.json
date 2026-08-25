@@ -1,8 +1,12 @@
 {
   "rewrites": [
     {
-      "source": "/api/auth/:path*",
+      "source": "/auth/:path*",
       "destination": "http://5.189.144.230:9000/auth/:path*"
+    },
+    {
+      "source": "/vyonic/:path*",
+      "destination": "http://5.189.144.230:9000/vyonic/:path*"
     },
     {
       "source": "/(.*)",
