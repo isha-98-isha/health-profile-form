@@ -19,28 +19,34 @@ const parseApiError = (error, fallbackMessage) => {
 	return error.message || fallbackMessage;
 };
 
-// Switched to sessionStorage
-export const saveLocalUser = (user, token = null) => {
-	window.sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+export const saveLocalUser = (user, token = null, remember = false) => {
+	const storage = remember ? window.localStorage : window.sessionStorage;
+	const otherStorage = remember ? window.sessionStorage : window.localStorage;
+
+	otherStorage.removeItem(AUTH_STORAGE_KEY);
+	otherStorage.removeItem(TOKEN_STORAGE_KEY);
+	storage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
 	if (token) {
-		window.sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
+		storage.setItem(TOKEN_STORAGE_KEY, token);
 	}
-	return user;
 };
 
-// Switched to sessionStorage
 export const getLocalUser = () => {
 	try {
-		return JSON.parse(window.sessionStorage.getItem(AUTH_STORAGE_KEY) || 'null');
+		return JSON.parse(
+			window.localStorage.getItem(AUTH_STORAGE_KEY) ||
+			window.sessionStorage.getItem(AUTH_STORAGE_KEY) ||
+			'null'
+		);
 	} catch (_) {
 		return null;
 	}
 };
 
-// Switched to sessionStorage
-export const getLocalToken = () => window.sessionStorage.getItem(TOKEN_STORAGE_KEY);
+export const getLocalToken = () =>
+	window.localStorage.getItem(TOKEN_STORAGE_KEY) ||
+	window.sessionStorage.getItem(TOKEN_STORAGE_KEY);
 
-// Async API-integrated logout using Axios
 export const logout = async () => {
 	const url = getLogoutUrl();
 	const token = getLocalToken();
@@ -58,6 +64,8 @@ export const logout = async () => {
 		console.error('Server logout failed:', parseApiError(error, 'Logout error'));
 	} finally {
 		// Always clear local storage tokens even if backend fails
+		window.localStorage.removeItem(AUTH_STORAGE_KEY);
+		window.localStorage.removeItem(TOKEN_STORAGE_KEY);
 		window.sessionStorage.removeItem(AUTH_STORAGE_KEY);
 		window.sessionStorage.removeItem(TOKEN_STORAGE_KEY);
 	}
@@ -104,8 +112,7 @@ export const login = async ({ email, password, remember }) => {
 
 		const user = data.data?.user || data.user || { email };
 		const token = data.data?.token || data.token || null;
-		saveLocalUser(user, token);
-
+		saveLocalUser(user, token, remember);
 		return data;
 	} catch (error) {
 		throw new Error(parseApiError(error, 'Authentication failed'));
