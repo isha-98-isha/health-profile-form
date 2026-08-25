@@ -3,10 +3,10 @@ import axios from 'axios';
 const AUTH_STORAGE_KEY = 'vyonic-auth-user';
 const TOKEN_STORAGE_KEY = 'vyonic-auth-token';
 
-const getLoginUrl = () => process.env.REACT_APP_LOGIN_API_URL || '/api/auth/v1/login';
-const getRegisterUrl = () => process.env.REACT_APP_REGISTER_API_URL || '/api/auth/v2/register';
-const getLogoutUrl = () => process.env.REACT_APP_LOGOUT_API_URL || '/api/auth/v1/logout';
-
+const getLoginUrl = () => process.env.REACT_APP_LOGIN_API_URL || '/auth/v1/login';
+const getRegisterUrl = () => process.env.REACT_APP_REGISTER_API_URL || '/auth/v2/register';
+const getLogoutUrl = () => process.env.REACT_APP_LOGOUT_API_URL || '/auth/v1/logout';
+const getDashboardUrl = () => process.env.REACT_APP_DASHBOARD_API_URL || '/vyonic/v1/today-bookings';
 const parseApiError = (error, fallbackMessage) => {
 	if (error.response?.data) {
 		const data = error.response.data;
@@ -62,6 +62,31 @@ export const logout = async () => {
 		window.sessionStorage.removeItem(TOKEN_STORAGE_KEY);
 	}
 };
+
+// 2. Add this exported function at the bottom of auth.js
+export const getDashboardData = async (status) => {
+	const url = getDashboardUrl();
+	const token = getLocalToken(); // Automatically fetches token from sessionStorage
+
+	try {
+		const response = await axios.post(url, {
+			page: 1,
+			limit: 10,
+			search: "",
+			timezone: "Asia/Kolkata",
+			booking_status: status,
+		}, {
+			headers: {
+				'Authorization': `Bearer ${token}`
+			}
+		});
+
+		return response.data;
+	} catch (error) {
+		throw new Error(parseApiError(error, 'Failed to fetch dashboard data'));
+	}
+};
+
 
 export const login = async ({ email, password, remember }) => {
 	const url = getLoginUrl();

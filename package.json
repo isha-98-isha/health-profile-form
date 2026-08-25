@@ -2,6 +2,7 @@
   "name": "my-app",
   "version": "0.1.0",
   "private": true,
+   "proxy": "http://5.189.144.230:9000",
   "dependencies": {
     "@reduxjs/toolkit": "^2.12.0",
     "@rollup/plugin-terser": "^1.0.0",
