@@ -5,6 +5,7 @@ import heroLogo from '../../assets/vyonic_log_big.webp';
 import { login } from '../../services/auth';
 import './login.css';
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // eye icons
+import { toast } from 'react-toastify';
 
 function Login() {
 	const navigate = useNavigate();
@@ -48,6 +49,7 @@ const handleSubmit = async (event) => {
     }
 
     setStatus({ type: 'success', message: 'Signed in successfully.' });
+	toast.success('login successfully');
     navigate('/dashboard');
   } catch (error) {
     setStatus({ type: 'error', message: error.message || 'Unable to connect to the login service' });
