@@ -213,6 +213,43 @@ const Onboarding = () => {
     }
   };
 
+  // Helper to persist completed assessment
+  const saveAssessmentRecord = () => {
+    try {
+      const existing = JSON.parse(localStorage.getItem('vyonic_local_assessments') || '[]');
+      const newId = `VA-${Math.floor(10000000 + Math.random() * 90000000).toString(16)}`;
+      const now = new Date();
+      const formattedDate = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      
+      const newRecord = {
+        id: `local-${Date.now()}`,
+        assessment_id: `#${newId}`,
+        name: `${formData.firstName || ''} ${formData.lastName || ''}`.trim() || 'New Client',
+        initials: `${(formData.firstName?.[0] || 'N')}${(formData.lastName?.[0] || 'C')}`.toUpperCase(),
+        date: formattedDate,
+        time_slot: "2:45 PM - 3:45 PM",
+        booking_status: "new",
+        location: "INDIA",
+        type: "Onboarding",
+        appointment_type: "Appointment",
+        duration: "60 minutes",
+        assessment_goal: selectedGoals.length > 0 ? selectedGoals.join(', ') : 'Restore Balance',
+        height: `${heightValue} ${heightUnit}`,
+        weight: `${weightValue} ${weightUnit}`,
+        previous_training_experience: `${yearsExp} Years`,
+        weekly_training_frequency: frequency,
+        injury_medical_notes: injuries.trim() || '-',
+        email: formData.email || 'client@vyonic.com',
+        phone: `${formData.countryCode || '+971'} ${formData.phone || ''}`.trim()
+      };
+
+      const updated = [newRecord, ...existing];
+      localStorage.setItem('vyonic_local_assessments', JSON.stringify(updated));
+    } catch (err) {
+      console.error('Error saving local assessment record:', err);
+    }
+  };
+
 
   // Full Weight Ruler Array (30kg to 160kg)
   const fullWeightTicks = Array.from({ length: 131 }, (_, i) => 30 + i);
@@ -1030,7 +1067,10 @@ const Onboarding = () => {
               <button
                 type="button"
                 className="btn-primary-gradient flex-1"
-                onClick={() => setActivePage(7)}
+                onClick={() => {
+                  saveAssessmentRecord();
+                  setActivePage(7);
+                }}
               >
                 Continue
               </button>
@@ -1073,7 +1113,7 @@ const Onboarding = () => {
                 type="button"
                 className="btn-primary-gradient"
                 onClick={() => {
-                  toast.success('Assesment Slot Created and Booked Successfully');
+                  toast.success('Assessment Slot Created and Booked Successfully');
                   navigate('/dashboard');
                 }}
               >

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/vyonic_logo_small.webp';
 import heroLogo from '../../assets/vyonic_log_big.webp';
 import { login } from '../../services/auth';
@@ -29,22 +29,30 @@ function Login() {
 		return nextErrors;
 	};
 
-	const handleSubmit = async (event) => {
-		event.preventDefault();
-		const nextErrors = validate();
-		if (Object.keys(nextErrors).length) {
-			setErrors(nextErrors);
-			return;
-		}
+const handleSubmit = async (event) => {
+  event.preventDefault();
+  const nextErrors = validate();
+  if (Object.keys(nextErrors).length) {
+    setErrors(nextErrors);
+    return;
+  }
 
-		setStatus({ type: 'loading', message: 'Signing you in...' });
-		try {
-			await login({ email: form.email.trim(), password: form.password, remember: form.remember });
-			setStatus({ type: 'success', message: 'Signed in successfully.' });
-			navigate('/dashboard');
-		} catch (error) {
-			setStatus({ type: 'error', message: error.message || 'Unable to connect to the login service' });
-		}
+  setStatus({ type: 'loading', message: 'Signing you in...' });
+  try {
+    // Assuming your login service returns the api response data
+    const response = await login({ email: form.email.trim(), password: form.password, remember: form.remember });
+    
+    // Save the bearer token to localStorage (adjust response.token depending on your exact API response structure)
+    if (response && response.token) {
+      localStorage.setItem('token', response.token);
+    }
+
+    setStatus({ type: 'success', message: 'Signed in successfully.' });
+    navigate('/dashboard');
+  } catch (error) {
+    setStatus({ type: 'error', message: error.message || 'Unable to connect to the login service' });
+  }
+
 	};
 
 	return (
@@ -58,11 +66,17 @@ function Login() {
 					<p className="auth-eyebrow">Welcome back to VYONIC</p>
 					<h1>Access your assessment dashboard</h1>
 					<form onSubmit={handleSubmit} noValidate>
-						<label htmlFor="login-email">Email</label>
-						<input id="login-email" name="email" type="email" autoComplete="email" value={form.email} onChange={updateField} placeholder="you@example.com" aria-invalid={Boolean(errors.email)} />
-						{errors.email && <span className="field-error">{errors.email}</span>}
+						<label htmlFor="login-email"></label>
+							<input id="login-email" 
+							name="email" type="email" 
+							autoComplete="email" 
+							value={form.email} 
+							onChange={updateField} 
+							placeholder="Email" 
+							aria-invalid={Boolean(errors.email)} />
+							{errors.email && <span className="field-error">{errors.email}</span>}
 
-						<label htmlFor="login-password">Password</label>
+						<label htmlFor="login-password"></label>
 							<div className="password-field">
 							<input
 								id="login-password"
@@ -71,7 +85,7 @@ function Login() {
 								autoComplete="current-password"
 								value={form.password}
 								onChange={updateField}
-								placeholder="Enter your password"
+								placeholder="Password"
 								aria-invalid={Boolean(errors.password)}
 							/>
 							<button
@@ -92,7 +106,6 @@ function Login() {
 						<button className="submit-button" type="submit" disabled={status.type === 'loading'}>{status.type === 'loading' ? 'Please wait...' : 'Continue'}</button>
 						{status.message && <p className={`form-status ${status.type}`} role="status">{status.message}</p>}
 					</form>
-					<p className="auth-switch">New to VYONIC Training app? <Link to="/signup">Create an account</Link></p>
 				</div>
 			</section>
 		</main>
