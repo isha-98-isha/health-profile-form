@@ -592,7 +592,7 @@ const Onboarding = () => {
           <div className="modal-surface">
             {/* Header */}
             <div className="modal-header">
-              <VyonicLogo className="modal-logo" width={64} height={58} />
+              <VyonicLogo className="modal-logo" width={75} height={75} />
               <h2 className="modal-title">Register Client &amp; Start Assessment</h2>
               <button
                 type="button"
@@ -1117,7 +1117,7 @@ const Onboarding = () => {
                   navigate('/dashboard');
                 }}
               >
-                Back to Dashboard
+                Save Details & Back to Dashboard
               </button>
             </div>
           </div>

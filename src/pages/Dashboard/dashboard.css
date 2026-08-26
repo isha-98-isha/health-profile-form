@@ -32,13 +32,11 @@
   box-sizing: border-box;
 }
 
-/* =========================================================
-   TOP NAVBAR
-   ========================================================= */
+/*TOP NAVBAR*/
 .vy-navbar {
   width: 100%;
   height: 64px;
-  background-color: #000000;
+  background-color: rgb(15, 13, 13);
   border-bottom: 1px solid var(--vy-border-subtle);
   display: flex;
   align-items: center;
@@ -53,6 +51,7 @@
   display: flex;
   align-items: center;
   gap: 32px;
+  padding-left: 250px;
 }
 
 .vy-logo-wrapper {
@@ -64,16 +63,16 @@
 }
 
 .vy-brand-title {
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
+  font-size: 28px;
+  font-weight: 600;
   color: #ffffff;
+  padding-right: 150px;
 }
 
 .vy-nav-links {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .vy-nav-item {
@@ -85,14 +84,14 @@
   border: none;
   border-radius: 8px;
   color: var(--vy-text-muted);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 400;
   cursor: pointer;
   transition: all 0.18s ease;
 }
 
 .vy-nav-item .nav-icon {
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .vy-nav-item:hover {
@@ -104,15 +103,16 @@
   background: var(--vy-blue-accent);
   color: #ffffff;
   border-radius: 9999px;
-  padding: 7px 18px;
-  font-weight: 600;
+  padding: 10px 18px;
+  font-weight: 550;
   box-shadow: 0 2px 10px rgba(37, 99, 235, 0.35);
 }
 
 .vy-nav-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+  padding-right: 260px;
 }
 
 /* Theme Toggle Pill */
@@ -122,7 +122,7 @@
   background: #151515;
   border: 1px solid var(--vy-border);
   border-radius: 9999px;
-  padding: 3px;
+  padding: 6px;
 }
 
 .theme-toggle-option {
@@ -217,8 +217,9 @@
 /* Top Header Section (Title + 4 Metric Cards) */
 .vy-header-section {
   display: flex;
-  align-items: center;
+  align-items: top;
   justify-content: space-between;
+  margin-top: 15px;
   margin-bottom: 28px;
   gap: 24px;
 }
@@ -228,8 +229,8 @@
 }
 
 .vy-dashboard-title {
-  font-size: 32px;
-  font-weight: 700;
+  font-size: 40px;
+  font-weight: 400;
   letter-spacing: -0.5px;
   color: #ffffff;
 }
@@ -244,7 +245,8 @@
   background: #141414;
   border: 1px solid var(--vy-border);
   border-radius: 14px;
-  min-width: 140px;
+  min-width: 233px;
+  height: 95px;
   padding: 14px 20px;
   display: flex;
   align-items: baseline;
@@ -253,16 +255,17 @@
 }
 
 .vy-metric-val {
-  font-size: 26px;
-  font-weight: 700;
+  font-size: 44px;
+  font-weight: 400;
   color: #ffffff;
   letter-spacing: -0.5px;
+  align-items: center;
 }
 
 .vy-metric-lbl {
-  font-size: 13px;
-  color: var(--vy-text-dim);
-  font-weight: 500;
+  font-size: 16px;
+  color: #ffffffbb;
+  font-weight: 400;
 }
 
 /* ACTION BAR (HEADING + FILTERS + SEARCH + CTA) */
@@ -270,7 +273,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-top: 15px;
+  margin-bottom: 25px;
   gap: 16px;
 }
 
@@ -294,14 +298,15 @@
 }
 
 .vy-filter-pill {
-  background: #1a1a1a;
+  background: #0f0f0f;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 9999px;
-  padding: 7px 18px;
-  font-size: 13px;
+  padding: 10px 18px;
+  font-size: 14px;
   font-weight: 500;
-  color: var(--vy-text-muted);
+  color: #ffffffcb;
   cursor: pointer;
+  letter-spacing: 0.5px;
   transition: all 0.15s ease;
 }
 
@@ -369,9 +374,10 @@
   color: #000000;
   border: none;
   border-radius: 9999px;
-  padding: 8px 18px;
-  font-size: 13px;
-  font-weight: 600;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 5450;
+  letter-spacing: 0.2px;
   cursor: pointer;
   transition: all 0.15s ease;
   box-shadow: 0 2px 10px rgba(255, 255, 255, 0.12);
@@ -659,7 +665,7 @@
 }
 
 .vy-meta-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: #ffffff;
 }
@@ -670,12 +676,12 @@
 }
 
 .vy-meta-sub-date {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--vy-text-dim);
 }
 
 .vy-meta-highlight {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: #ffffff;
 }
@@ -710,17 +716,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .vy-info-label {
-  color: var(--vy-text-muted);
+  color: #ffffffd8;
   font-weight: 400;
 }
 
 .vy-info-value {
   color: #ffffff;
-  font-weight: 600;
+  font-weight: 400;
   text-align: right;
 }
 
@@ -738,7 +744,7 @@
 }
 
 .vy-contact-label {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--vy-text-dim);
 }
 
@@ -746,19 +752,132 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 400;
   color: #ffffff;
 }
 
 .vy-contact-val .contact-icon {
-  font-size: 14px;
+  font-size: 18px;
   color: var(--vy-text-muted);
 }
 
+/* PAGINATION */
+.vy-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 4px 4px;
+  flex-wrap: wrap;
+}
+
+.vy-page-btn {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #141414;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.vy-page-btn:hover:not(:disabled) {
+  background: #242424;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.vy-page-btn.active {
+  background: rgb(184, 12, 12);
+  color: #ffffff;
+  border-color: rgba(239, 68, 68, 0.8);
+  font-weight: 700;
+}
+
+.vy-page-btn.active:hover:not(:disabled) {
+  background: rgb(184, 12, 12);
+  color: #ffffff;
+  border-color: rgba(239, 68, 68, 0.8);
+}
+
+.vy-page-btn:disabled {
+  background: #2b2b2b;
+  border-color: #2b2b2b;
+  color: #969696;
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+.vy-page-ellipsis {
+  color: var(--vy-text-dim);
+  font-size: 14px;
+  padding: 0 4px;
+  line-height: 34px;
+}
+
 /* =========================================================
-   RESPONSIVE DESIGN
+   STATUS-BASED ACTION BUTTONS
    ========================================================= */
+.vy-action-buttons-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0 8px;
+}
+
+.vy-btn-primary {
+  flex: 1;
+  height: 44px;
+  border-radius: 12px;
+  border: none;
+  background: var(--vy-blue-accent);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 2px 12px rgba(37, 99, 235, 0.35);
+}
+
+.vy-btn-primary:hover {
+  background: var(--vy-blue-active);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 18px rgba(37, 99, 235, 0.5);
+}
+
+.vy-btn-secondary,
+.vy-btn-danger-outline {
+  flex: 1;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #1e1e1e;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.vy-btn-secondary:hover,
+.vy-btn-danger-outline:hover {
+  background: #2a2a2a;
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+/* RESPONSIVE DESIGN*/
 @media (max-width: 1100px) {
   .vy-split-view {
     grid-template-columns: 300px 1fr;
