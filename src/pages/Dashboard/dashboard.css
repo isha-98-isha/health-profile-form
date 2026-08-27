@@ -50,8 +50,8 @@
 .vy-nav-left {
   display: flex;
   align-items: center;
-  gap: 32px;
-  padding-left: 250px;
+  gap: 16px;
+  flex: 1;
 }
 
 .vy-logo-wrapper {
@@ -63,10 +63,9 @@
 }
 
 .vy-brand-title {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 600;
   color: #ffffff;
-  padding-right: 150px;
 }
 
 .vy-nav-links {
@@ -112,7 +111,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding-right: 260px;
+  flex-shrink: 0;
 }
 
 /* Theme Toggle Pill */
@@ -238,14 +237,17 @@
 .vy-metrics-grid {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+  flex: 1;
 }
 
 .vy-metric-card {
   background: #141414;
   border: 1px solid var(--vy-border);
   border-radius: 14px;
-  min-width: 233px;
+  flex: 1 1 160px;
+  min-width: 0;
   height: 95px;
   padding: 14px 20px;
   display: flex;
@@ -877,29 +879,174 @@
   transform: translateY(-1px);
 }
 
-/* RESPONSIVE DESIGN*/
+/* =========================================================
+   RESPONSIVE DESIGN
+   ========================================================= */
+
+/* Hamburger toggle — hidden by default */
+.vy-nav-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--vy-text-muted);
+  font-size: 22px;
+  cursor: pointer;
+  padding: 4px;
+  flex-shrink: 0;
+}
+
 @media (max-width: 1100px) {
   .vy-split-view {
     grid-template-columns: 300px 1fr;
   }
 
-  .vy-metrics-grid {
-    flex-wrap: wrap;
+  .vy-nav-right .vy-theme-toggle span {
+    display: none;
   }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 900px) {
+  .vy-navbar {
+    padding: 0 16px;
+  }
+
+  .vy-nav-links {
+    display: none;
+    position: absolute;
+    top: 64px;
+    left: 0;
+    right: 0;
+    background: rgb(15, 13, 13);
+    border-bottom: 1px solid var(--vy-border-subtle);
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 16px;
+    gap: 4px;
+    z-index: 99;
+  }
+
+  .vy-nav-links.open {
+    display: flex;
+  }
+
+  .vy-nav-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .vy-nav-right {
+    gap: 8px;
+  }
+
+  .vy-theme-toggle span {
+    display: none;
+  }
+
   .vy-header-section {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .vy-action-bar {
-    flex-direction: column;
-    align-items: flex-start;
+  .vy-metrics-grid {
+    width: 100%;
+  }
+
+  .vy-metric-card {
+    flex: 1 1 140px;
+    height: auto;
+    min-height: 80px;
+  }
+
+  .vy-metric-val {
+    font-size: 34px;
   }
 
   .vy-split-view {
     grid-template-columns: 1fr;
+  }
+
+  .vy-action-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .vy-action-right {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .vy-filters-group {
+    flex-wrap: wrap;
+  }
+
+  .vy-new-assessment-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .vy-dashboard-main {
+    padding: 16px 14px 40px;
+  }
+
+  .vy-dashboard-title {
+    font-size: 28px;
+  }
+
+  .vy-metric-card {
+    flex: 1 1 calc(50% - 6px);
+    height: auto;
+    min-height: 70px;
+    padding: 12px 14px;
+  }
+
+  .vy-metric-val {
+    font-size: 28px;
+  }
+
+  .vy-metric-lbl {
+    font-size: 13px;
+  }
+
+  .vy-detail-meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vy-contact-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vy-brand-title {
+    display: none;
+  }
+
+  .vy-filter-pill {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .vy-search-input {
+    width: 120px;
+  }
+}
+
+@media (max-width: 400px) {
+  .vy-metric-card {
+    flex: 1 1 100%;
+  }
+
+  .vy-action-right {
+    flex-direction: column;
+  }
+
+  .vy-search-container {
+    width: 100%;
+  }
+
+  .vy-search-input {
+    width: 100%;
   }
 }
