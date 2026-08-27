@@ -18,8 +18,7 @@ import {
   FiPlus,
   FiArrowUpRight,
   FiMail,
-  FiPhone,
-  FiClock
+  FiPhone
 } from 'react-icons/fi';
 
 // HELPERS
@@ -1017,8 +1016,6 @@ export default function Dashboard() {
                         </div>
 
                         <div className="vy-card-time-pill">
-
-                          <FiClock className="time-icon" />
 
                           <span>
                             {item.time_slot}

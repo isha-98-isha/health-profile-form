@@ -491,8 +491,9 @@
 }
 
 .vy-card-name {
-  font-size: 14px;
-  font-weight: 600;
+  margin-bottom: 5px;
+  font-size: 15px;
+  font-weight: 500;
   color: #ffffff;
   white-space: nowrap;
   overflow: hidden;
@@ -501,7 +502,7 @@
 
 .vy-card-date {
   font-size: 11px;
-  color: var(--vy-text-dim);
+  color: #ffffffb3;
 }
 
 .vy-card-time-pill {
@@ -510,17 +511,19 @@
   gap: 5px;
   margin-top: 4px;
   padding: 3px 8px;
-  background: rgba(34, 197, 94, 0.12);
-  border-radius: 6px;
-  color: #4ade80;
+  background: #53a868c7;
+  border-radius: 10px;
+  color: #000000;
   font-size: 11px;
   font-weight: 500;
+  letter-spacing: 0.5px;
   width: fit-content;
 }
 
-.vy-card-time-pill .time-icon {
+/*.vy-card-time-pill .time-icon {
   font-size: 10px;
 }
+*/
 
 .vy-card-action {
   flex-shrink: 0;
@@ -611,59 +614,74 @@
 }
 
 .vy-detail-id-tag {
-  font-size: 11px;
-  color: var(--vy-text-dim);
+  font-size: 14px;
+  margin-top: 6px;
+  padding: 1px 10px;
   letter-spacing: 0.5px;
   font-family: monospace;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  width: fit-content;
+  background: #6f7fad94;
+  border-radius: 12px;
+  color: #ffffff;
 }
 
 .vy-status-badge {
   display: inline-block;
-  padding: 5px 14px;
+  padding: 7px 14px;
   border-radius: 9999px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: capitalize;
 }
 
 .vy-status-badge.completed {
-  background: #1e3a8a;
-  color: #93c5fd;
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: #1e3b8a77;
+  color: #1f70cc;
 }
 
 .vy-status-badge.scheduled,
 .vy-status-badge.confirmed {
   background: #14532d;
   color: #86efac;
-  border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
 .vy-status-badge.new {
   background: #701a75;
   color: #f472b6;
-  border: 1px solid rgba(236, 72, 153, 0.3);
 }
 
 .vy-status-badge.cancelled {
-  background: #7f1d1d;
-  color: #fca5a5;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: #5a222296;
+  color: #f50202e5;
 }
 
 /* Detail Meta Grid */
 .vy-detail-meta-grid {
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr;
-  gap: 16px;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 32px; /* Increased gap to 32px to give 16px space on both sides of the line */
   padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .vy-meta-item {
   display: flex;
   flex-direction: column;
   gap: 3px;
+  position: relative; /* Required to anchor the vertical line */
+}
+
+/* Creates the vertical line exactly in the middle of the columns */
+.vy-meta-item + .vy-meta-item::before {
+  content: "";
+  position: absolute;
+  left: -16px; /* Positions it exactly in the center of the 32px gap */
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  height: 40PX;
+  background-color: rgba(255, 255, 255, 0.137)
 }
 
 .vy-meta-title {
@@ -674,7 +692,7 @@
 
 .vy-meta-sub {
   font-size: 12px;
-  color: var(--vy-text-dim);
+  color:#ffffff8c;
 }
 
 .vy-meta-sub-date {
