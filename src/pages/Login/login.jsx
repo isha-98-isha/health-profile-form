@@ -96,16 +96,19 @@ const handleSubmit = async (event) => {
 								onClick={() => setShowPassword((visible) => !visible)}
 								aria-label={showPassword ? "Hide password" : "Show password"}
 							>
-								{showPassword ? <FaEyeSlash /> : <FaEye />}
+								{showPassword ? <FaEye /> : <FaEyeSlash />}
 							</button>
 							</div>
 							{errors.password && <span className="field-error">{errors.password}</span>}
 
 						<div className="auth-options">
-							<label className="remember-option"><input name="remember" type="checkbox" checked={form.remember} onChange={updateField} /> Keep me signed in</label>
-							<button type="button" className="text-button" onClick={() => setStatus({ type: 'info', message: 'Password reset is available through your API.' })}>Forgot password?</button>
+							<label className="remember-option">
+								<input name="remember" type="checkbox" checked={form.remember} 
+								onChange={updateField} /> <h3>Keep me signed in</h3></label>
+							<button type="button" className="text-button" 
+							onClick={() => setStatus({ type: 'info', message: 'Password reset is available through your API.' })}>Forgot password?</button>
 						</div>
-						<button className="submit-button" type="submit" disabled={status.type === 'loading'}>{status.type === 'loading' ? 'Please wait...' : 'Continue'}</button>
+						<button className="submit-button" type="submit" disabled={status.type === 'loading' || !form.email.trim() || !form.password.trim()}>{status.type === 'loading' ? 'Please wait...' : 'Continue'}</button>
 						{status.message && <p className={`form-status ${status.type}`} role="status">{status.message}</p>}
 					</form>
 				</div>

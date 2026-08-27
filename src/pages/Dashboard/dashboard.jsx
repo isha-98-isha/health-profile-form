@@ -339,6 +339,8 @@ export default function Dashboard() {
   const [totalPages, setTotalPages] =
     useState(1);
 
+  const [navOpen, setNavOpen] = useState(false);
+
   // FILTERS
   const filters = [
     {
@@ -679,7 +681,7 @@ export default function Dashboard() {
             </span>
           </div>
 
-          <nav className="vy-nav-links">
+          <nav className={`vy-nav-links${navOpen ? ' open' : ''}`}>
 
             <button
               className={`vy-nav-item ${activeNav === 'Dashboard'
@@ -755,6 +757,14 @@ export default function Dashboard() {
             </button>
           </nav>
         </div>
+
+        <button
+          className="vy-nav-toggle"
+          aria-label="Toggle navigation"
+          onClick={() => setNavOpen((o) => !o)}
+        >
+          ☰
+        </button>
 
         <div className="vy-nav-right">
 
