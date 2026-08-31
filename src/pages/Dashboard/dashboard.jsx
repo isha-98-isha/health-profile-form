@@ -2,6 +2,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import VyonicLogo from '../../components/VyonicLogo';
 import { logout, getDashboardData, getDashboardStats } from '../../services/auth';
+import MasterListView from '../../components/Dashboard/MasterListView';
+import ListFilterBar from '../../components/Dashboard/ListFilterBar';
+import DetailView from '../../components/Dashboard/DetailView';
+import DashboardNavbar from '../../components/Dashboard/DashboardNavbar';
+import Pagination from '../../components/Dashboard/Pagination';
 import './dashboard.css';
 import Swal from 'sweetalert2';
 import {
@@ -14,9 +19,6 @@ import {
   FiSun,
   FiMoon,
   FiBell,
-  FiSearch,
-  FiPlus,
-  FiArrowUpRight,
   FiMail,
   FiPhone
 } from 'react-icons/fi';
@@ -406,8 +408,7 @@ export default function Dashboard() {
         const apiStatus =
           activeFilter === 'scheduled' ? 'confirmed' : activeFilter;
 
-        const response =
-          await getDashboardData(apiStatus, currentPage, LIMIT);
+        const response = await getDashboardData(apiStatus, currentPage, LIMIT);
 
         allBookings = getBookingsFromResponse(response);
 
@@ -447,8 +448,7 @@ export default function Dashboard() {
         );
 
         // ONLY ASSESSMENTS
-        const assessmentBookings =
-          uniqueBookings.filter((item) => {
+        const assessmentBookings = uniqueBookings.filter((item) => {
             if (
               item.is_assessment !== undefined &&
               item.is_assessment !== null
@@ -661,7 +661,8 @@ export default function Dashboard() {
 
       {/* NAVBAR */}
 
-      <header className="vy-navbar">
+      <DashboardNavbar activePage="Dashboard" />
+      {false && <header className="vy-navbar">
 
         <div className="vy-nav-left">
 
@@ -687,9 +688,7 @@ export default function Dashboard() {
                   ? 'active'
                   : ''
                 }`}
-              onClick={() =>
-                setActiveNav('Dashboard')
-              }
+              onClick={() => navigate('/dashboard')}
             >
               <FiGrid className="nav-icon" />
               <span>Dashboard</span>
@@ -699,9 +698,7 @@ export default function Dashboard() {
                   ? 'active'
                   : ''
                 }`}
-              onClick={() =>
-                setActiveNav('Client')
-              }
+              onClick={() => navigate('/client')}
             >
               <FiUsers className="nav-icon" />
               <span>Client</span>
@@ -817,7 +814,7 @@ export default function Dashboard() {
             />
           </div>
         </div>
-      </header>
+      </header>}
 
 
       {/* MAIN */}
@@ -874,251 +871,52 @@ export default function Dashboard() {
         </div>
 
         {/* ACTION BAR */}
-        <div className="vy-action-bar">
-          <div className="vy-action-left">
-            <h2 className="vy-section-heading">
-              All assessments
-            </h2>
-          </div>
-
-          <div className="vy-action-right">
-            {/* FILTERS */}
-            <div className="vy-filters-group">
-              {filters.map((filter) => (
-
-                <button
-                  key={filter.id}
-                  className={`vy-filter-pill ${activeFilter === filter.id
-                      ? 'active'
-                      : ''
-                    }`}
-                  onClick={() =>
-                    setActiveFilter(
-                      filter.id
-                    )
-                  }
-                >
-                  {filter.label}
-                </button>
-              ))}
-            </div>
-
-            {/* SEARCH */}
-            <div
-              className={`vy-search-container ${showSearchInput
-                  ? 'open'
-                  : ''
-                }`}
-            >
-              {showSearchInput && (
-
-                <input
-                  type="text"
-                  className="vy-search-input"
-                  placeholder="Search assessments..."
-                  value={searchQuery}
-                  onChange={(e) =>
-                    setSearchQuery(
-                      e.target.value
-                    )
-                  }
-                  autoFocus
-                />
-              )}
-
-              <button
-                className="vy-icon-btn vy-search-btn"
-                onClick={() =>
-                  setShowSearchInput(
-                    !showSearchInput
-                  )
-                }
-                title="Search"
-              >
-                <FiSearch />
-              </button>
-
-            </div>
-
-            {/* NEW ASSESSMENT */}
-            <button
-              className="vy-new-assessment-btn"
-              onClick={() =>
-                navigate('/onboarding')
-              }
-            >
-              <FiPlus className="plus-icon" />
-
-              <span>
-                New Assessment
-              </span>
-            </button>
-          </div>
-        </div>
-
-
+        <ListFilterBar
+          filters={filters}
+          activeFilter={activeFilter}
+          onFilterChange={setActiveFilter}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          showSearchInput={showSearchInput}
+          onToggleSearch={() => setShowSearchInput((visible) => !visible)}
+          searchPlaceholder="Search assessments..."
+          actionLabel={{
+            heading: 'All assessments',
+            button: 'New Assessment'
+          }}
+          onAction={() => navigate('/onboarding')}
+        />
         {/* ASSESSMENT CONTENT */}
         <div className="vy-split-view">
 
           {/* LEFT LIST */}
           <div className="vy-list-column">
 
-            {loading ? (
+            <MasterListView
+              items={filteredAssessments}
+              selectedId={selectedAssessment?.id}
+              onSelect={setSelectedAssessmentId}
+              loading={loading}
+              loadingMessage="Loading assessments..."
+              emptyMessage="No assessments found."
+            />
 
-              <div className="vy-empty-state">
-                Loading assessments...
-              </div>
-
-            ) : filteredAssessments.length === 0 ? (
-
-              <div className="vy-empty-state">
-                No assessments found.
-              </div>
-
-            ) : (
-
-              filteredAssessments.map(
-                (item) => {
-
-                  const isSelected =
-                    selectedAssessment &&
-                    selectedAssessment.id ===
-                    item.id;
-
-                  return (
-
-                    <div
-                      key={item.id}
-                      className={`vy-assessment-card ${isSelected
-                          ? 'selected'
-                          : ''
-                        }`}
-                      onClick={() =>
-                        setSelectedAssessmentId(
-                          item.id
-                        )
-                      }
-                    >
-                      <div className="vy-card-avatar">
-                        <span>
-                          {item.initials}
-                        </span>
-                      </div>
-
-                      <div className="vy-card-body">
-
-                        <div className="vy-card-name">
-                          {item.name}
-                        </div>
-
-                        <div className="vy-card-date">
-                          {item.date}
-                        </div>
-
-                        <div className="vy-card-time-pill">
-
-                          <span>
-                            {item.time_slot}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="vy-card-action">
-                        <button
-                          className="vy-arrow-btn"
-                          tabIndex={-1}
-                          aria-label="Open assessment"
-                        >
-                          <FiArrowUpRight />
-                        </button>
-
-                      </div>
-                    </div>
-                  );
-                }
-              )
-            )}
-
-            {/* PAGINATION — always visible */}
             {!loading && (
-              <div className="vy-pagination">
-                {/* First */}
-                <button
-                  className="vy-page-btn"
-                  onClick={() => setCurrentPage(1)}
-                  disabled={currentPage === 1}
-                  aria-label="First page"
-                >
-                  «
-                </button>
-
-                {/* Prev */}
-                <button
-                  className="vy-page-btn"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  aria-label="Previous page"
-                >
-                  ‹
-                </button>
-
-                {/* Page numbers */}
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter((p) =>
-                    p === 1 ||
-                    p === totalPages ||
-                    Math.abs(p - currentPage) <= 1
-                  )
-                  .reduce((acc, p, idx, arr) => {
-                    if (idx > 0 && p - arr[idx - 1] > 1) {
-                      acc.push('...');
-                    }
-                    acc.push(p);
-                    return acc;
-                  }, [])
-                  .map((p, idx) =>
-                    p === '...' ? (
-                      <span key={`ellipsis-${idx}`} className="vy-page-ellipsis">…</span>
-                    ) : (
-                      <button
-                        key={p}
-                        className={`vy-page-btn ${currentPage === p ? 'active' : ''
-                          }`}
-                        onClick={() => setCurrentPage(p)}
-                        aria-label={`Page ${p}`}
-                        aria-current={currentPage === p ? 'page' : undefined}
-                      >
-                        {p}
-                      </button>
-                    )
-                  )}
-
-                {/* Next */}
-                <button
-                  className="vy-page-btn"
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  aria-label="Next page"
-                >
-                  ›
-                </button>
-
-                {/* Last */}
-                <button
-                  className="vy-page-btn"
-                  onClick={() => setCurrentPage(totalPages)}
-                  disabled={currentPage === totalPages}
-                  aria-label="Last page"
-                >
-                  »
-                </button>
-              </div>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                setCurrentPage={setCurrentPage}
+              />
             )}
 
           </div>
 
           {/* RIGHT DETAIL */}
           {selectedAssessment && (
+            <DetailView data={selectedAssessment} variant="assessment" />
+          )}
+
+          {false && selectedAssessment && (
 
             <div className="vy-detail-column">
 
