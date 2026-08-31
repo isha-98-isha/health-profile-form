@@ -8,6 +8,7 @@ const getRegisterUrl = () => process.env.REACT_APP_REGISTER_API_URL || '/auth/v2
 const getLogoutUrl = () => process.env.REACT_APP_LOGOUT_API_URL || '/auth/v1/logout';
 const getDashboardUrl = () => process.env.REACT_APP_DASHBOARD_API_URL || '/vyonic/v1/today-bookings';
 const getDashboardStatsUrl = () => process.env.REACT_APP_DASHBOARD_STATS_API_URL || '/vyonic/v1/dashboard';
+const getClientUrl = () => process.env.REACT_APP_CLIENT_API_URL || '/vyonic/v1/vyonic-users';
 const parseApiError = (error, fallbackMessage) => {
 	if (error.response?.data) {
 		const data = error.response.data;
@@ -110,6 +111,28 @@ export const getDashboardStats = async () => {
 		return response.data?.data || response.data || {};
 	} catch (error) {
 		throw new Error(parseApiError(error, 'Failed to fetch dashboard stats'));
+	}
+};
+
+export const getClientData = async (status = 'all', page = 1, limit = 10, search = '') => {
+	const url = getClientUrl();
+	const token = getLocalToken();
+
+	try {
+		const response = await axios.post(url, {
+			page,
+			limit,
+			search,
+			status: status === 'all' ? '' : status,
+		}, {
+			headers: {
+				'Authorization': `Bearer ${token}`
+			}
+		});
+
+		return response.data;
+	} catch (error) {
+		throw new Error(parseApiError(error, 'Failed to fetch client data'));
 	}
 };
 

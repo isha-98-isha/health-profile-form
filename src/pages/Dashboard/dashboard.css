@@ -41,8 +41,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 28px;
-  position: sticky;
+  padding: 0 300px;
+  position: relative;
   top: 0;
   z-index: 100;
 }
@@ -50,7 +50,7 @@
 .vy-nav-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 100px;
   flex: 1;
 }
 
@@ -63,7 +63,7 @@
 }
 
 .vy-brand-title {
-  font-size: 22px;
+  font-size: 28px;
   font-weight: 600;
   color: #ffffff;
 }
@@ -84,7 +84,7 @@
   border-radius: 8px;
   color: var(--vy-text-muted);
   font-size: 14px;
-  font-weight: 400;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.18s ease;
 }
@@ -237,19 +237,22 @@
 .vy-metrics-grid {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 12px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   flex: 1;
 }
 
 .vy-metric-card {
-  background: #141414;
+  background: #0c0c0c;
   border: 1px solid var(--vy-border);
   border-radius: 14px;
-  flex: 1 1 160px;
-  min-width: 0;
-  height: 95px;
-  padding: 14px 20px;
+  flex: 0 0 230px;
+  width: 230px;
+  min-width: 120px;
+  max-width: 230px;
+  height: 90px;
+  padding: 14px 16px;
   display: flex;
   align-items: baseline;
   gap: 8px;
@@ -266,7 +269,7 @@
 
 .vy-metric-lbl {
   font-size: 16px;
-  color: #ffffffbb;
+  color: #ffffffcc;
   font-weight: 400;
 }
 
@@ -281,7 +284,7 @@
 }
 
 .vy-section-heading {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 600;
   color: #ffffff;
   letter-spacing: -0.2px;
@@ -650,6 +653,11 @@
 .vy-status-badge.new {
   background: #701a75;
   color: #f472b6;
+}
+
+.vy-status-badge.client {
+  background: #65f58b;
+  color: #07150b;
 }
 
 .vy-status-badge.cancelled {
