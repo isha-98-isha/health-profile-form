@@ -15,7 +15,9 @@ export default function ListFilterBar({
 }) {
   return (
     <div className="vy-action-bar">
-      <div className="vy-action-left"><h2 className="vy-section-heading">{actionLabel.heading}</h2></div>
+      <div className="vy-action-left">
+        <h2 className="vy-section-heading">{actionLabel.heading}</h2>
+      </div>
       <div className="vy-action-right">
         <div className="vy-filters-group">
           {filters.map((filter) => (

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSocket } from '../../context/SocketContext';
 import DashboardNavbar from '../../components/Dashboard/DashboardNavbar';
 import MasterListView from '../../components/Dashboard/MasterListView';
 import ListFilterBar from '../../components/Dashboard/ListFilterBar';
@@ -78,6 +79,7 @@ const formatClient = (item, index) => {
 
 export default function Client() {
   const navigate = useNavigate();
+  const { refreshKey } = useSocket();
   const [clients, setClients] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -103,7 +105,7 @@ export default function Client() {
     };
     loadStats();
     return () => { cancelled = true; };
-  }, []);
+  }, [refreshKey]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -141,7 +143,7 @@ export default function Client() {
     };
     loadClients();
     return () => { cancelled = true; };
-  }, [searchQuery, currentPage, totalClientsCount]);
+  }, [searchQuery, currentPage, totalClientsCount, refreshKey]);
 
   const filteredClients = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -160,8 +162,24 @@ export default function Client() {
                 <h1 className="vy-dashboard-title">Clients</h1>
             </div>
         </div>
-        <ListFilterBar filters={[]} activeFilter="all" onFilterChange={() => {}} searchQuery={searchQuery} onSearchChange={setSearchQuery} showSearchInput={showSearchInput} onToggleSearch={() => setShowSearchInput((open) => !open)} searchPlaceholder="Search clients..." actionLabel={{ heading: 'Clients', button: 'Register New Client' }} onAction={() => navigate('/onboarding')} />
-        <div className="vy-split-view"><div className="vy-list-column"><MasterListView items={filteredClients} selectedId={selectedClient?.id} onSelect={setSelectedId} loading={loading} loadingMessage="Loading clients..." emptyMessage="No clients found." showDate={false} showTime={false} showEmail />
+        <ListFilterBar filters={[]} activeFilter="all" onFilterChange={() => {}} 
+        searchQuery={searchQuery} 
+        onSearchChange={setSearchQuery} 
+        showSearchInput={showSearchInput} 
+        onToggleSearch={() => setShowSearchInput((open) => !open)} 
+        searchPlaceholder="Search clients..." 
+        actionLabel={{ heading: 'Clients', button: 'Register New Client' }} 
+        onAction={() => navigate('/onboarding')} />
+
+        <div className="vy-split-view">
+        <div className="vy-list-column">
+        <MasterListView items={filteredClients} selectedId={selectedClient?.id} 
+        onSelect={setSelectedId} loading={loading} 
+        loadingMessage="Loading clients..." 
+        emptyMessage="No clients found." 
+        showDate={false} 
+        showTime={false} 
+        showEmail />
           {!loading && (
             <Pagination
               currentPage={currentPage}

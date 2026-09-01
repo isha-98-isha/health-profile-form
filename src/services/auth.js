@@ -9,6 +9,7 @@ const getLogoutUrl = () => process.env.REACT_APP_LOGOUT_API_URL || '/auth/v1/log
 const getDashboardUrl = () => process.env.REACT_APP_DASHBOARD_API_URL || '/vyonic/v1/today-bookings';
 const getDashboardStatsUrl = () => process.env.REACT_APP_DASHBOARD_STATS_API_URL || '/vyonic/v1/dashboard';
 const getClientUrl = () => process.env.REACT_APP_CLIENT_API_URL || '/vyonic/v1/vyonic-users';
+const getPartnerUrl = () => process.env.REACT_APP_PARTNER_API_URL || '/vyonic/v1/partners-list';
 const parseApiError = (error, fallbackMessage) => {
 	if (error.response?.data) {
 		const data = error.response.data;
@@ -31,6 +32,7 @@ export const saveLocalUser = (user, token = null, remember = false) => {
 	if (token) {
 		storage.setItem(TOKEN_STORAGE_KEY, token);
 	}
+	window.dispatchEvent(new Event('vyonic-auth-changed'));
 };
 
 export const getLocalUser = () => {
@@ -70,6 +72,7 @@ export const logout = async () => {
 		window.localStorage.removeItem(TOKEN_STORAGE_KEY);
 		window.sessionStorage.removeItem(AUTH_STORAGE_KEY);
 		window.sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+		window.dispatchEvent(new Event('vyonic-auth-changed'));
 	}
 };
 
@@ -133,6 +136,35 @@ export const getClientData = async (status = 'all', page = 1, limit = 10, search
 		return response.data;
 	} catch (error) {
 		throw new Error(parseApiError(error, 'Failed to fetch client data'));
+	}
+};
+
+export const getPartnerData = async (status = 'all', page = 1, limit = 10, search = '') => {
+	const url = getPartnerUrl();
+	const token = getLocalToken();
+
+	const payload = {
+		page,
+		limit,
+		search,
+	};
+	if (status && status !== 'all') {
+		payload.status = status;
+		payload.approval_status = status;
+	}
+
+	try {
+		const response = await axios.post(url, payload, {
+			headers: {
+				'Authorization': `Bearer ${token}`
+			}
+		});
+
+		// Return full body — Partner.jsx handles unwrapping
+		return response.data;
+	} catch (error) {
+		console.error('[getPartnerData] POST failed:', error?.response?.status, error?.message);
+		throw new Error(parseApiError(error, 'Failed to fetch partner data'));
 	}
 };
 

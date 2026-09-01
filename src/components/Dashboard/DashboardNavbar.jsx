@@ -1,18 +1,37 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiBell, FiCreditCard, FiGrid, FiMoon, FiSettings, FiSun, FiUserCheck, FiUsers, FiCalendar } from 'react-icons/fi';
 import Swal from 'sweetalert2';
 import VyonicLogo from '../VyonicLogo';
 import { logout } from '../../services/auth';
 
+const THEME_STORAGE_KEY = 'vyonic-theme';
+
+const getInitialTheme = () => {
+  try {
+    return localStorage.getItem(THEME_STORAGE_KEY) || 'dark';
+  } catch (error) {
+    return 'dark';
+  }
+};
+
 export default function DashboardNavbar({ activePage = 'Dashboard' }) {
   const navigate = useNavigate();
-  const [themeMode, setThemeMode] = useState('dark');
+  const [themeMode, setThemeMode] = useState(getInitialTheme);
   const [navOpen, setNavOpen] = useState(false);
   const navItems = [
-    ['Dashboard', FiGrid, '/dashboard'], ['Client', FiUsers, '/client'], ['Partner', FiUserCheck],
+    ['Dashboard', FiGrid, '/dashboard'], ['Client', FiUsers, '/client'], ['Partner', FiUserCheck, '/partner'],
     ['Bookings', FiCalendar], ['Billing', FiCreditCard], ['Setting', FiSettings]
   ];
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', themeMode);
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, themeMode);
+    } catch (error) {
+      console.warn('Theme persistence failed:', error);
+    }
+  }, [themeMode]);
 
   const handleLogout = async () => {
     const result = await Swal.fire({ title: 'Are you sure?', text: 'Do you really want to log out?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#3b6fd9', cancelButtonColor: '#222222', confirmButtonText: 'Logout', cancelButtonText: 'Cancel', background: '#141414', color: '#ffffff' });
@@ -24,10 +43,12 @@ export default function DashboardNavbar({ activePage = 'Dashboard' }) {
 
   return (
     <header className="vy-navbar">
-      <div className="vy-nav-left">
-        <div className="vy-logo-wrapper" onClick={() => navigate('/dashboard')}>
-          <VyonicLogo width={50} height={50} />
-          <span className="vy-brand-title">VYONIC</span>
+      <div className="vy-navbar-inner">
+        <div className="vy-nav-left">
+          <div className="vy-logo-wrapper" onClick={() => navigate('/dashboard')}>
+            <VyonicLogo width={50} height={50} />
+            <span className="vy-brand-title">VYONIC</span>
+          </div>
         </div>
         <nav className={`vy-nav-links${navOpen ? ' open' : ''}`}>
           {navItems.map(([label, Icon, path]) => (
@@ -37,15 +58,15 @@ export default function DashboardNavbar({ activePage = 'Dashboard' }) {
             </button>
           ))}
         </nav>
-      </div>
-      <button className="vy-nav-toggle" aria-label="Toggle navigation" onClick={() => setNavOpen((open) => !open)}>☰</button>
-      <div className="vy-nav-right">
-        <div className="vy-theme-toggle">
-          <button className={`theme-toggle-option ${themeMode === 'light' ? 'active' : ''}`} onClick={() => setThemeMode('light')}><FiSun className="theme-icon" /><span>Light</span></button>
-          <button className={`theme-toggle-option ${themeMode === 'dark' ? 'active' : ''}`} onClick={() => setThemeMode('dark')}><FiMoon className="theme-icon" /><span>Dark</span></button>
+        <button className="vy-nav-toggle" aria-label="Toggle navigation" onClick={() => setNavOpen((open) => !open)}>☰</button>
+        <div className="vy-nav-right">
+          <div className="vy-theme-toggle">
+            <button className={`theme-toggle-option ${themeMode === 'light' ? 'active' : ''}`} onClick={() => setThemeMode('light')}><FiSun className="theme-icon" /><span>Light</span></button>
+            <button className={`theme-toggle-option ${themeMode === 'dark' ? 'active' : ''}`} onClick={() => setThemeMode('dark')}><FiMoon className="theme-icon" /><span>Dark</span></button>
+          </div>
+          <div className="vy-notification-btn" title="Notifications"><FiBell className="bell-icon" /><span className="notif-badge">70</span></div>
+          <div className="vy-user-avatar" onClick={handleLogout} title="Click to Logout"><VyonicLogo width={22} height={22} /></div>
         </div>
-        <div className="vy-notification-btn" title="Notifications"><FiBell className="bell-icon" /><span className="notif-badge">70</span></div>
-        <div className="vy-user-avatar" onClick={handleLogout} title="Click to Logout"><VyonicLogo width={22} height={22} /></div>
       </div>
     </header>
   );

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSocket } from '../../context/SocketContext';
 import VyonicLogo from '../../components/VyonicLogo';
 import { logout, getDashboardData, getDashboardStats } from '../../services/auth';
 import MasterListView from '../../components/Dashboard/MasterListView';
@@ -304,6 +305,7 @@ const getBookingsFromResponse = (response) => {
 // DASHBOARD
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { refreshKey } = useSocket();
 
   const [activeNav, setActiveNav] =
     useState('Dashboard');
@@ -374,10 +376,10 @@ export default function Dashboard() {
         const stats = await getDashboardStats();
         if (!cancelled) {
           setDashboardStats({
-            clients:     stats.clients     ?? '-',
-            partners:    stats.partners    ?? '-',
+            clients: stats.clients ?? '-',
+            partners: stats.partners ?? '-',
             assessments: stats.assessments ?? '-',
-            journeys:    stats.journeys    ?? '-',
+            journeys: stats.journeys ?? '-',
           });
         }
       } catch (err) {
@@ -386,7 +388,7 @@ export default function Dashboard() {
     };
     loadStats();
     return () => { cancelled = true; };
-  }, []);
+  }, [refreshKey]);
 
   // RESET PAGE ON FILTER CHANGE
   useEffect(() => {
@@ -449,14 +451,14 @@ export default function Dashboard() {
 
         // ONLY ASSESSMENTS
         const assessmentBookings = uniqueBookings.filter((item) => {
-            if (
-              item.is_assessment !== undefined &&
-              item.is_assessment !== null
-            ) {
-              return item.is_assessment === true;
-            }
-            return true;
-          });
+          if (
+            item.is_assessment !== undefined &&
+            item.is_assessment !== null
+          ) {
+            return item.is_assessment === true;
+          }
+          return true;
+        });
 
         // FORMAT + SORT
         const formattedAssessments =
@@ -527,7 +529,7 @@ export default function Dashboard() {
       cancelled = true;
     };
 
-  }, [activeFilter, currentPage]);
+  }, [activeFilter, currentPage, refreshKey]);
 
   // SEARCH
   const filteredAssessments = useMemo(() => {
@@ -685,8 +687,8 @@ export default function Dashboard() {
 
             <button
               className={`vy-nav-item ${activeNav === 'Dashboard'
-                  ? 'active'
-                  : ''
+                ? 'active'
+                : ''
                 }`}
               onClick={() => navigate('/dashboard')}
             >
@@ -695,8 +697,8 @@ export default function Dashboard() {
             </button>
             <button
               className={`vy-nav-item ${activeNav === 'Client'
-                  ? 'active'
-                  : ''
+                ? 'active'
+                : ''
                 }`}
               onClick={() => navigate('/client')}
             >
@@ -705,8 +707,8 @@ export default function Dashboard() {
             </button>
             <button
               className={`vy-nav-item ${activeNav === 'Partner'
-                  ? 'active'
-                  : ''
+                ? 'active'
+                : ''
                 }`}
               onClick={() =>
                 setActiveNav('Partner')
@@ -717,8 +719,8 @@ export default function Dashboard() {
             </button>
             <button
               className={`vy-nav-item ${activeNav === 'Bookings'
-                  ? 'active'
-                  : ''
+                ? 'active'
+                : ''
                 }`}
               onClick={() =>
                 setActiveNav('Bookings')
@@ -729,8 +731,8 @@ export default function Dashboard() {
             </button>
             <button
               className={`vy-nav-item ${activeNav === 'Billing'
-                  ? 'active'
-                  : ''
+                ? 'active'
+                : ''
                 }`}
               onClick={() =>
                 setActiveNav('Billing')
@@ -741,8 +743,8 @@ export default function Dashboard() {
             </button>
             <button
               className={`vy-nav-item ${activeNav === 'Setting'
-                  ? 'active'
-                  : ''
+                ? 'active'
+                : ''
                 }`}
               onClick={() =>
                 setActiveNav('Setting')
@@ -768,8 +770,8 @@ export default function Dashboard() {
 
             <button
               className={`theme-toggle-option ${themeMode === 'light'
-                  ? 'active'
-                  : ''
+                ? 'active'
+                : ''
                 }`}
               onClick={() =>
                 setThemeMode('light')
@@ -780,8 +782,8 @@ export default function Dashboard() {
             </button>
             <button
               className={`theme-toggle-option ${themeMode === 'dark'
-                  ? 'active'
-                  : ''
+                ? 'active'
+                : ''
                 }`}
               onClick={() =>
                 setThemeMode('dark')
@@ -797,7 +799,6 @@ export default function Dashboard() {
             title="Notifications"
           >
             <FiBell className="bell-icon" />
-
             <span className="notif-badge">
               70
             </span>
@@ -809,8 +810,8 @@ export default function Dashboard() {
             title="Click to Logout"
           >
             <VyonicLogo
-              width={22}
-              height={22}
+              width={45}
+              height={45}
             />
           </div>
         </div>
