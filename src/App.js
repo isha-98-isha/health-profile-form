@@ -4,34 +4,39 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Dashboard from './pages/Dashboard/dashboard';
 import Client from './pages/Client/Client';
+import Partner from './pages/Partner/Partner';
 import Onboarding from './pages/Onboardings/Onboarding';
 import Login from './pages/Login/login';
 import Signup from './pages/Signup/signup';
+import { SocketProvider } from './context/SocketContext';
 
 function App() {
   return (
-    <BrowserRouter>
-      <div className="App">
-        <ToastContainer position="bottom-right" autoClose={5000} theme="dark" />
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/client" element={<Client />} />
-          <Route
-            path="/onboarding"
-            element={
-              <div className="onboarding-route">
-                <Dashboard />
-                <Onboarding />
-              </div>
-            }
-          />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </div>
-    </BrowserRouter>
+    <SocketProvider>
+      <BrowserRouter>
+        <div className="App">
+          <ToastContainer position="bottom-right" autoClose={5000} theme="dark" />
+          <Routes>
+            <Route path="/" element={<Login />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/client" element={<Client />} />
+            <Route path="/partner" element={<Partner />} />
+            <Route
+              path="/onboarding"
+              element={
+                <div className="onboarding-route">
+                  <Dashboard />
+                  <Onboarding />
+                </div>
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </SocketProvider>
   );
 }
 

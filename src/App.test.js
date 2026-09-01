@@ -1,8 +1,22 @@
 import { render, screen } from '@testing-library/react';
-import App from './App';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
+import DashboardNavbar from './components/Dashboard/DashboardNavbar';
 
-test('renders learn react link', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+beforeEach(() => {
+  document.documentElement.removeAttribute('data-theme');
+  window.localStorage.clear();
+});
+
+test('light toggle updates the theme state and persists it', async () => {
+  render(
+    <MemoryRouter>
+      <DashboardNavbar />
+    </MemoryRouter>
+  );
+
+  await userEvent.click(screen.getByRole('button', { name: /light/i }));
+
+  expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+  expect(window.localStorage.getItem('vyonic-theme')).toBe('light');
 });
