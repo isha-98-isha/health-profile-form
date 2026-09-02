@@ -40,22 +40,20 @@ const handleSubmit = async (event) => {
 
   setStatus({ type: 'loading', message: 'Signing you in...' });
   try {
-    // Assuming your login service returns the api response data
     const response = await login({ email: form.email.trim(), password: form.password, remember: form.remember });
-    
-    // Save the bearer token to localStorage (adjust response.token depending on your exact API response structure)
-    if (response && response.token) {
-      localStorage.setItem('token', response.token);
+
+    if (response && response.success !== false) {
+      setStatus({ type: 'success', message: 'Signed in successfully.' });
+      toast.success('login successfully');
+      navigate('/dashboard');
+      return;
     }
 
-    setStatus({ type: 'success', message: 'Signed in successfully.' });
-	toast.success('login successfully');
-    navigate('/dashboard');
+    throw new Error(response?.message || 'Authentication failed');
   } catch (error) {
     setStatus({ type: 'error', message: error.message || 'Unable to connect to the login service' });
   }
-
-	};
+};
 
 	return (
 		<main className="auth-page">
