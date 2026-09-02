@@ -7,6 +7,38 @@ import Pagination from '../../components/Dashboard/Pagination';
 import { getPartnerData } from '../../services/auth';
 import './partner.css';
 
+// Default static fallback map for location IDs in UAE (Northern Emirates, Dubai, Abu Dhabi, Sharjah, Ras Al Khaimah, Ajman, Fujairah, Umm Al Quwain)
+const STATIC_LOCATION_MAP = {
+  // Cities
+  128: 'Northern Emirates',
+  129: 'Northern Emirates',
+  130: 'Dubai',
+  131: 'Abu Dhabi',
+  132: 'Sharjah',
+  133: 'Ras Al Khaimah',
+  134: 'Ajman',
+  135: 'Fujairah',
+  136: 'Umm Al Quwain',
+  // Areas
+  172: 'Araibi',
+  173: 'Dhait',
+  174: 'Sheikh Khalifa city',
+  190: 'Ghurfah',
+  187: 'Al riffa',
+  198: 'Al Nakheel',
+  175: 'Flag park',
+  176: 'Zorah',
+  177: 'Muweilah',
+  178: 'Zahia',
+  179: 'Industrial area 15',
+  180: 'Industrial area 17',
+  181: 'Al Jada',
+  182: 'Deerfields mall area',
+  183: 'Al Shahamah new',
+  184: 'Al Bahyah new',
+  185: 'Al Shahamah old'
+};
+
 const formatDate = (value) => {
   if (!value) return '—';
   const date = new Date(value);
@@ -16,9 +48,11 @@ const formatDate = (value) => {
 };
 
 // Normalizes an API partner object to UI fields
-const formatPartner = (item, defaultStatus = 'pending', index = 0) => {
+const formatPartner = (item, defaultStatus = 'pending', index = 0, dynamicLocMap = {}) => {
   const profile = item?.profile || item?.user_profile || item?.partner_profile || {};
   const user = item?.user || {};
+
+  const locMap = { ...STATIC_LOCATION_MAP, ...dynamicLocMap };
 
   let firstName = item.first_name || profile.first_name || profile.firstName || user.first_name || '';
   let lastName = item.last_name || profile.last_name || profile.lastName || user.last_name || '';
@@ -43,17 +77,97 @@ const formatPartner = (item, defaultStatus = 'pending', index = 0) => {
     roles = [item.role || profile.role];
   }
 
+  // Robust location parser that unpacks strings, JSON strings, arrays, or objects
+  const parseLocationToString = (val) => {
+    if (!val && val !== 0) return '';
+    if (typeof val === 'number' || (!isNaN(Number(val)) && typeof val === 'string' && val.trim() !== '')) {
+      const num = Number(val);
+      if (locMap[num]) return locMap[num];
+    }
+    if (typeof val === 'string') {
+      const trimmed = val.trim();
+      if (!trimmed || trimmed === 'null' || trimmed === 'undefined' || trimmed === '[]' || trimmed === '{}') return '';
+      // If it looks like JSON stringified array or object, parse it
+      if ((trimmed.startsWith('[') && trimmed.endsWith(']')) || (trimmed.startsWith('{') && trimmed.endsWith('}'))) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          return parseLocationToString(parsed);
+        } catch (_) {
+          return trimmed;
+        }
+      }
+      return trimmed;
+    }
+    if (Array.isArray(val)) {
+      const formatted = val.map((v) => {
+        if (typeof v === 'number' || (!isNaN(Number(v)) && typeof v === 'string' && v.trim() !== '')) {
+          return locMap[Number(v)] || '';
+        }
+        return parseLocationToString(v);
+      }).filter(Boolean);
+      return formatted.join(', ');
+    }
+    if (typeof val === 'object') {
+      const parts = [
+        val.name,
+        val.city,
+        val.area,
+        val.state,
+        val.address,
+        val.location,
+        val.location_of_execution
+      ].filter(Boolean);
+      if (parts.length > 0) {
+        return parts.join(' - ');
+      }
+    }
+    return '';
+  };
+
   let location = '—';
-  if (item.location_of_execution) {
-    location = item.location_of_execution;
-  } else if (Array.isArray(item.service_locations) && item.service_locations.length > 0) {
-    location = item.service_locations.map((loc) => loc.name || loc.city || String(loc)).join(', ');
-  } else if (Array.isArray(item.locations) && item.locations.length > 0) {
-    location = item.locations.map((loc) => loc.name || loc.city || String(loc)).join(', ');
-  } else if (item.location || profile.location) {
-    location = item.location || profile.location;
-  } else if (item.city || item.address) {
-    location = item.city ? `${item.city}${item.state ? ', ' + item.state : ''}` : item.address;
+  const locationCandidates = [
+    item.location_of_execution,
+    profile.location_of_execution,
+    user.location_of_execution,
+    item.service_locations,
+    profile.service_locations,
+    item.locations,
+    profile.locations,
+    item.location,
+    profile.location,
+    user.location,
+    item.city ? `${item.city}${item.state ? ', ' + item.state : ''}` : null,
+    profile.city ? `${profile.city}${profile.state ? ', ' + profile.state : ''}` : null,
+    item.address,
+    profile.address
+  ];
+
+  for (const candidate of locationCandidates) {
+    const parsed = parseLocationToString(candidate);
+    if (parsed) {
+      location = parsed;
+      break;
+    }
+  }
+
+  // If location is still empty, construct from primary_location and areas_served (like "Northern Emirates - Araibi")
+  if (location === '—') {
+    const primLocId = item.primary_location || profile.primary_location || user.primary_location;
+    const areasServedIds = item.areas_served || profile.areas_served || user.areas_served;
+
+    const cityName = primLocId ? (locMap[Number(primLocId)] || parseLocationToString(primLocId)) : '';
+    let areaNames = '';
+    if (Array.isArray(areasServedIds) && areasServedIds.length > 0) {
+      areaNames = areasServedIds.map((id) => locMap[Number(id)] || (typeof id === 'string' && isNaN(Number(id)) ? id : '')).filter(Boolean).join(', ');
+    }
+
+    if (cityName && areaNames) {
+      location = `${cityName} - ${areaNames}`;
+    } else if (cityName) {
+      location = cityName;
+    } else if (areaNames) {
+      location = areaNames;
+    }
   }
 
   // Always read approval_status first — it is the authoritative status field
@@ -73,15 +187,19 @@ const formatPartner = (item, defaultStatus = 'pending', index = 0) => {
     status = 'rejected';
   }
 
+  const uuid = item.user_uuid || item.uuid || item.id || item._id || profile.user_uuid || user.uuid || user.id;
+
   return {
-    id: item.id || item._id || item.user_uuid || item.uuid || `partner-${index}`,
+    id: uuid || `partner-${index}`,
+    uuid: uuid || `partner-${index}`,
     name,
     firstName: firstName || '—',
     lastName: lastName || '—',
     roles: roles.length > 0 ? roles : ['Trainer'],
     location: location || '—',
-    submitted: formatDate(item.updated_at),
-    status
+    submitted: formatDate(item.updated_at || item.submitted_at || item.created_date || item.createdAt),
+    status,
+    raw: item
   };
 };
 
@@ -107,12 +225,12 @@ const extractTotal = (container, fallback) => {
 const filterPartnersByQuery = (list, searchQuery) => {
   if (!searchQuery.trim()) return list;
   const query = searchQuery.toLowerCase().trim();
-  return list.filter((p) =>
-    (p.name       || '').toLowerCase().includes(query) ||
-    (p.firstName  || '').toLowerCase().includes(query) ||
-    (p.lastName   || '').toLowerCase().includes(query) ||
-    (p.location   || '').toLowerCase().includes(query) ||
-    (p.roles      || []).some((r) => r.toLowerCase().includes(query))
+  return list.filter((partner) =>
+    (partner.name || '').toLowerCase().includes(query) ||
+    (partner.firstName || '').toLowerCase().includes(query) ||
+    (partner.lastName || '').toLowerCase().includes(query) ||
+    (partner.location || '').toLowerCase().includes(query) ||
+    (partner.roles || []).some((role) => role.toLowerCase().includes(query))
   );
 };
 
@@ -180,7 +298,6 @@ export default function Partner() {
           (Array.isArray(dataObj.data) ? dataObj.data : null) ??
           (Array.isArray(dataObj)      ? dataObj      : []);
 
-
         const formatted = flatItems.map((item, idx) => formatPartner(item, item.approval_status || item.status || 'pending', idx));
 
         const p = formatted.filter((x) => x.status === 'pending');
@@ -210,9 +327,18 @@ export default function Partner() {
   const toggleExpandRoles = (id) =>
     setExpandedRoles((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  const visiblePending  = useMemo(() => filterPartnersByQuery(pendingList, searchQuery),  [pendingList, searchQuery]);
-  const visibleApproved = useMemo(() => filterPartnersByQuery(approvedList, searchQuery), [approvedList, searchQuery]);
-  const visibleRejected = useMemo(() => filterPartnersByQuery(rejectedList, searchQuery), [rejectedList, searchQuery]);
+  const visiblePending = useMemo(
+    () => filterPartnersByQuery(pendingList, searchQuery),
+    [pendingList, searchQuery]
+  );
+  const visibleApproved = useMemo(
+    () => filterPartnersByQuery(approvedList, searchQuery),
+    [approvedList, searchQuery]
+  );
+  const visibleRejected = useMemo(
+    () => filterPartnersByQuery(rejectedList, searchQuery),
+    [rejectedList, searchQuery]
+  );
 
   const totalEntries = pendingTotal + approvedTotal + rejectedTotal;
   const totalPages   = Math.max(1, Math.ceil(totalEntries / pageSize));
@@ -220,7 +346,9 @@ export default function Partner() {
   const endEntry     = Math.min(currentPage * pageSize, totalEntries);
 
   const handleAction = (partner, actionType) => {
-    console.log(`[Partner] Action "${actionType}" for id=${partner.id}`);
+    navigate(`/partner/details/${partner.id}?mode=${actionType}`, {
+      state: { partner, mode: actionType }
+    });
   };
 
   const renderRoles = (partner) => {

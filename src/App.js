@@ -5,10 +5,17 @@ import 'react-toastify/dist/ReactToastify.css';
 import Dashboard from './pages/Dashboard/dashboard';
 import Client from './pages/Client/Client';
 import Partner from './pages/Partner/Partner';
+import PartnerDetails from './pages/Partner/PartnerDetails';
 import Onboarding from './pages/Onboardings/Onboarding';
 import Login from './pages/Login/login';
 import Signup from './pages/Signup/signup';
 import { SocketProvider } from './context/SocketContext';
+import { getLocalToken, getLocalUser } from './services/auth';
+
+export const isAuthenticated = () => Boolean(getLocalToken() && getLocalUser());
+
+export const PublicRoute = ({ children }) => (isAuthenticated() ? <Navigate to="/dashboard" replace /> : children);
+export const ProtectedRoute = ({ children }) => (isAuthenticated() ? children : <Navigate to="/login" replace />);
 
 function App() {
   return (
@@ -17,19 +24,23 @@ function App() {
         <div className="App">
           <ToastContainer position="bottom-right" autoClose={5000} theme="dark" />
           <Routes>
-            <Route path="/" element={<Login />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/client" element={<Client />} />
-            <Route path="/partner" element={<Partner />} />
+            <Route path="/" element={<PublicRoute><Login /></PublicRoute>} />
+            <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+            <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/client" element={<ProtectedRoute><Client /></ProtectedRoute>} />
+            <Route path="/partner" element={<ProtectedRoute><Partner /></ProtectedRoute>} />
+            <Route path="/partner/details/:id" element={<ProtectedRoute><PartnerDetails /></ProtectedRoute>} />
+            <Route path="/partner/:id" element={<ProtectedRoute><PartnerDetails /></ProtectedRoute>} />
             <Route
               path="/onboarding"
               element={
-                <div className="onboarding-route">
-                  <Dashboard />
-                  <Onboarding />
-                </div>
+                <ProtectedRoute>
+                  <div className="onboarding-route">
+                    <Dashboard />
+                    <Onboarding />
+                  </div>
+                </ProtectedRoute>
               }
             />
             <Route path="*" element={<Navigate to="/" replace />} />
