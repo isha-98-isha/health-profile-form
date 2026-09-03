@@ -4,40 +4,8 @@ import { FiPlus, FiSearch, FiMapPin, FiArrowRight } from 'react-icons/fi';
 import { useSocket } from '../../context/SocketContext';
 import DashboardNavbar from '../../components/Dashboard/DashboardNavbar';
 import Pagination from '../../components/Dashboard/Pagination';
-import { getPartnerData } from '../../services/auth';
+import { getPartnerData, getWorkLocations } from '../../services/auth';
 import './partner.css';
-
-// Default static fallback map for location IDs in UAE (Northern Emirates, Dubai, Abu Dhabi, Sharjah, Ras Al Khaimah, Ajman, Fujairah, Umm Al Quwain)
-const STATIC_LOCATION_MAP = {
-  // Cities
-  128: 'Northern Emirates',
-  129: 'Northern Emirates',
-  130: 'Dubai',
-  131: 'Abu Dhabi',
-  132: 'Sharjah',
-  133: 'Ras Al Khaimah',
-  134: 'Ajman',
-  135: 'Fujairah',
-  136: 'Umm Al Quwain',
-  // Areas
-  172: 'Araibi',
-  173: 'Dhait',
-  174: 'Sheikh Khalifa city',
-  190: 'Ghurfah',
-  187: 'Al riffa',
-  198: 'Al Nakheel',
-  175: 'Flag park',
-  176: 'Zorah',
-  177: 'Muweilah',
-  178: 'Zahia',
-  179: 'Industrial area 15',
-  180: 'Industrial area 17',
-  181: 'Al Jada',
-  182: 'Deerfields mall area',
-  183: 'Al Shahamah new',
-  184: 'Al Bahyah new',
-  185: 'Al Shahamah old'
-};
 
 const formatDate = (value) => {
   if (!value) return '—';
@@ -47,12 +15,19 @@ const formatDate = (value) => {
     : date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
+const formatLocationObject = (location) => {
+  if (!location || typeof location !== 'object') return '';
+  const city = location.emirate || location.city || location.name || '';
+  const area = location.area || location.sub_location || location.area_name || '';
+  return [city, area].filter((value) => value && String(value).toLowerCase() !== 'null').join(' - ');
+};
+
 // Normalizes an API partner object to UI fields
 const formatPartner = (item, defaultStatus = 'pending', index = 0, dynamicLocMap = {}) => {
   const profile = item?.profile || item?.user_profile || item?.partner_profile || {};
   const user = item?.user || {};
 
-  const locMap = { ...STATIC_LOCATION_MAP, ...dynamicLocMap };
+  const locMap = dynamicLocMap;
 
   let firstName = item.first_name || profile.first_name || profile.firstName || user.first_name || '';
   let lastName = item.last_name || profile.last_name || profile.lastName || user.last_name || '';
@@ -108,6 +83,8 @@ const formatPartner = (item, defaultStatus = 'pending', index = 0, dynamicLocMap
       return formatted.join(', ');
     }
     if (typeof val === 'object') {
+      const locationLabel = formatLocationObject(val);
+      if (locationLabel) return locationLabel;
       const parts = [
         val.name,
         val.city,
@@ -129,13 +106,13 @@ const formatPartner = (item, defaultStatus = 'pending', index = 0, dynamicLocMap
     item.location_of_execution,
     profile.location_of_execution,
     user.location_of_execution,
+    item.location,
+    profile.location,
+    user.location,
     item.service_locations,
     profile.service_locations,
     item.locations,
     profile.locations,
-    item.location,
-    profile.location,
-    user.location,
     item.city ? `${item.city}${item.state ? ', ' + item.state : ''}` : null,
     profile.city ? `${profile.city}${profile.state ? ', ' + profile.state : ''}` : null,
     item.address,
@@ -151,6 +128,28 @@ const formatPartner = (item, defaultStatus = 'pending', index = 0, dynamicLocMap
   }
 
   // If location is still empty, construct from primary_location and areas_served (like "Northern Emirates - Araibi")
+  if (location === '—') {
+    const primaryLocationDetails =
+      item.primary_location_details ||
+      profile.primary_location_details ||
+      user.primary_location_details;
+    const areasServedDetails =
+      item.areas_served_details ||
+      profile.areas_served_details ||
+      user.areas_served_details;
+
+    const detailedCity = primaryLocationDetails?.main_location || primaryLocationDetails?.name || '';
+    const detailedAreas = Array.isArray(areasServedDetails)
+      ? areasServedDetails
+        .map((area) => area?.sub_location || area?.area || area?.name)
+        .filter(Boolean)
+      : [];
+
+    if (detailedCity || detailedAreas.length > 0) {
+      location = [detailedCity, detailedAreas.join(', ')].filter(Boolean).join(' - ');
+    }
+  }
+
   if (location === '—') {
     const primLocId = item.primary_location || profile.primary_location || user.primary_location;
     const areasServedIds = item.areas_served || profile.areas_served || user.areas_served;
@@ -258,7 +257,22 @@ export default function Partner() {
     const fetchPartners = async () => {
       setLoading(true);
       try {
-        const response = await getPartnerData('all', currentPage, pageSize, searchQuery);
+        const [locationsResponse, response] = await Promise.all([
+          getWorkLocations(),
+          getPartnerData('all', currentPage, pageSize, searchQuery)
+        ]);
+        const dynamicLocMap = {};
+        const locationData = locationsResponse?.data?.data || locationsResponse?.data || locationsResponse || [];
+        if (Array.isArray(locationData)) {
+          locationData.forEach((location) => {
+            if (location?.id != null && location?.main_location) dynamicLocMap[location.id] = location.main_location;
+            if (Array.isArray(location?.sub_locations)) {
+              location.sub_locations.forEach((area) => {
+                if (area?.id != null && area?.sub_location) dynamicLocMap[area.id] = area.sub_location;
+              });
+            }
+          });
+        }
         const dataObj = response?.data ?? response ?? {};
 
         // -----------------------------------------------
@@ -274,9 +288,9 @@ export default function Partner() {
           const rawRejected = extractArray(rejectedContainer);
 
           // Map each group with its explicit default status so approval_status on the item still wins
-          const pList = rawPending.map((item, idx)  => formatPartner(item, 'pending',  idx));
-          const aList = rawApproved.map((item, idx) => formatPartner(item, 'approved', idx));
-          const rList = rawRejected.map((item, idx) => formatPartner(item, 'rejected', idx));
+          const pList = rawPending.map((item, idx)  => formatPartner(item, 'pending',  idx, dynamicLocMap));
+          const aList = rawApproved.map((item, idx) => formatPartner(item, 'approved', idx, dynamicLocMap));
+          const rList = rawRejected.map((item, idx) => formatPartner(item, 'rejected', idx, dynamicLocMap));
 
           if (!cancelled) {
             setPendingList(pList);
@@ -298,7 +312,7 @@ export default function Partner() {
           (Array.isArray(dataObj.data) ? dataObj.data : null) ??
           (Array.isArray(dataObj)      ? dataObj      : []);
 
-        const formatted = flatItems.map((item, idx) => formatPartner(item, item.approval_status || item.status || 'pending', idx));
+        const formatted = flatItems.map((item, idx) => formatPartner(item, item.approval_status || item.status || 'pending', idx, dynamicLocMap));
 
         const p = formatted.filter((x) => x.status === 'pending');
         const a = formatted.filter((x) => x.status === 'approved');
