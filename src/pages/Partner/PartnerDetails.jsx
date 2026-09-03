@@ -1,41 +1,77 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { FiArrowLeft, FiX } from 'react-icons/fi';
+import { FiArrowLeft, FiChevronDown, FiX } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import DashboardNavbar from '../../components/Dashboard/DashboardNavbar';
 import { getPartnerProfileDetails, getWorkLocations } from '../../services/auth';
 import './partnerDetails.css';
 
-// Default static fallback map for location IDs in UAE
-const STATIC_LOCATION_MAP = {
-  // Cities
-  128: 'Northern Emirates',
-  129: 'Northern Emirates',
-  130: 'Dubai',
-  131: 'Abu Dhabi',
-  132: 'Sharjah',
-  133: 'Ras Al Khaimah',
-  134: 'Ajman',
-  135: 'Fujairah',
-  136: 'Umm Al Quwain',
-  // Areas
-  172: 'Araibi',
-  173: 'Dhait',
-  174: 'Sheikh Khalifa city',
-  190: 'Ghurfah',
-  187: 'Al riffa',
-  198: 'Al Nakheel',
-  175: 'Flag park',
-  176: 'Zorah',
-  177: 'Muweilah',
-  178: 'Zahia',
-  179: 'Industrial area 15',
-  180: 'Industrial area 17',
-  181: 'Al Jada',
-  182: 'Deerfields mall area',
-  183: 'Al Shahamah new',
-  184: 'Al Bahyah new',
-  185: 'Al Shahamah old'
+const AREAS_BY_CITY = {
+  'Northern Emirates': [
+    'Hamidiya', 'Jerf / Jurf', 'Flag park', 'Raqaib / Alia', 'Bahia', 'Jerf Industrial',
+    'Ajman china mall', 'Zorah', 'Meshairef', 'Ajman Corniche', 'Nuaimia', 'Rashideya',
+    'Ajman Industrial Area', 'Rawda', 'Tallah / Muaihat', 'Muntazi / Hamidiya', 'Zahya',
+    'Helio', 'Yasmeen', 'Emirates city', 'Old UAQ / Corniche', 'Al khor waterfront / New corniche',
+    'Hamrah', 'Butain', 'Hadeetha', 'Mallah', 'Ramlah', 'Neefah', 'Khalifa city', 'UAQ university',
+    'Salamah / salmah', 'Abraq', 'Saraya Island', 'Rams', 'Hulaylah', 'Al jood /Dhayah', 'Julfar',
+    'Mataf', 'Nudood / Shurisha', 'Mamourah', 'Maireed', 'Juwais / Manar mall area', 'Araibi',
+    'Dhait', 'Sheikh Khalifa city', 'Shamal', 'Qusaidat', 'Hail', 'Zahra', 'Shihyar', 'Fellyah',
+    'Digdaga', 'RAK Zoo / Airport', 'Mathloothah', 'Mudfak', 'Mina al arab', 'Jazeera al hamra',
+    'Al riffa', 'Marjan island'
+  ],
+  Dubai: [
+    'Burj Khalifa', 'DUBAI AIPORT', 'UMM RAMOOL', 'Palm Jumeirah', 'BURDUBAI', 'KARAMA', 'DHCC',
+    'MANKHOOL', 'OUD METHA', 'JAFLIYA', 'JADAF', 'DUBIA CREEK (OUD METHA)', 'TRADE CENTER',
+    'SHZ ROAD (SHJ) untill the canal', 'BUSINESS BAY', 'DOWNTOWN', 'D3', 'DUBAI MALL', 'ZABEEL PARK',
+    'CITY WALK', 'SHZ ROAD (AUH) untill the canal', 'AL WASL ROAD ( Untill canal)', 'JUMEIRAH 1',
+    'JUMEIRAH 2', 'PEARL JUMEIRAH', 'SATWA', 'JUMEIRAH 3', 'UMM SEQUIM 1', 'UMM SEQUIM 2',
+    'UMM SEQUIM 3', 'SAFA - MANARA- UMM AL SHEIF', 'AL WASL ROAD', 'MADINAT JUMEIRAH',
+    'POLICE ACADEMY', 'KITE BEACH', 'DUBAI MARINA', 'JBR', 'DUBAI MEDIA CITY', 'DUBAI INTERNET CITY',
+    'AL SUFOUH', 'DUBAI KNOWLEDGE PARK', 'BLUEWATERS', 'AL QUOS', 'AL BARSHA 1', 'AL BARSHA 2',
+    'BARSHA HEIGHTS', 'MOE AREA', 'JVC', 'BARSHA SOUTH', 'DUBAI HILLS', 'JVT', 'DUBAILAND ARJAN',
+    'SPORTS CITY - ALHEBIAH 4TH', 'MOTOR CITY - ALHEBIAH 1ST', 'PRODCUTION CTY', 'STUDIO CITY',
+    'BARARI', 'ARABIAN RANCHES', 'VILLANOVA', 'GLOBAL VILLAGE AREA', 'DUBAILAND RESIDENCE COMPLEX',
+    'SILICON OASIS', 'INTERNATIONAL CITY', 'ACADEMIC CITY', 'WARSAN', 'RAS AL KHOR', 'NAD AL SHEBA',
+    'MEYDAN', 'DUBAI CREEK HARBOUR', 'AL AWEER', 'JLT', 'EMIRATES HILLS', 'DISCOVERY GARDENS',
+    'FURJAN', 'MEADOWS - SPRINGS', 'IBN BATTUTA', 'DIP 1', 'DIP 2', 'EXPO CITY', 'DUBAI SOUTH',
+    'AL MAKTOUM AIRPORT', 'DIC', 'NIP', 'OUTLET VILLAGE', 'MOTIONGATE AREA', 'DUBAI PARKS & RESORTS',
+    'JEBAL ALI INDUSTRIAL AREA', 'DEIRA', 'RIGGA', 'ABU HAIL', 'DEIRA WATER FRONT', 'MAMZAR',
+    'AL GARHOUD', 'RASHIDIYA', 'NAD AL HAMAR', 'DFC', 'QUASIS', 'NAHDA 1', 'AL TAWAR', 'MUHAISNAH 3',
+    'MUHAISNAH 4', 'MUHAISNAH 1', 'MUHAISNAH 2', 'MIZHAR', 'QURANIC PARK', 'KHAWANEEJ', 'MIRDIF',
+    'DIFC', 'The Dubai Mall', 'WARQAA', 'DUBAI SAFARI PARK', 'DUBAI CROCODILE PARK', 'DAMAC HILLS',
+    'TOWNSQUARE', 'MUDON', 'ARABIAN RANCHES 2', 'THE SUSTAINABLE CITY', 'BAB AL SHAMS',
+    'DUBAI OUTLET MALL', 'AL MAHA DESERT', 'AL FAQA', 'LAHBAB', 'AL MADAM'
+  ],
+  'Abu Dhabi': [
+    'Al Bahyah new', 'Al Shahamah old', 'Al Bahyah old', 'Deerfeilds mall area', 'Al Shahamah new',
+    'Yas island (Ferrari Warner mall)', 'Yas Bay', 'Yas marina', 'Yas North', 'West Yas', 'AUH Airport',
+    'Masdar city', 'Khalifa city', 'Al Matar', 'Al Raha area', 'Al Rayyana', 'A l Forsan', 'Rabdan',
+    'Mangrove Village', 'Al Maqtaa mall', 'Mohamed Bin Zayed City (MBZ)', 'Musaffah', 'Dalma Mall',
+    'Al rawdah - Rowdhat', 'Sz Grand mosque', 'Al muntazah', 'Hills Abu Dhabi', 'Zayed sports city',
+    'Al Mushrif', 'Al Nahyan', 'Al Manhal', 'Al Wahda', 'Downtown AUH', 'Madinat zayed shopping',
+    'Al zahiyah', 'Al falah', 'Corniche area', 'Emirates palace hotel area', 'Marina', 'Qasr al Watan',
+    'Al Khalidiyah', 'Al Bateen', 'Al Maryah Island', 'Reem Island', 'Saadiyar Island', 'Al Wathbah area',
+    'Al Dhafrah', 'Qasr Al Wathbah', 'Mafraq area', 'Wathbah salt lake', 'Zayed city', 'Shakhbout city',
+    'Zayed university', 'Shawamekh', 'Shamkha Mall area', 'Bani Yas', 'Wathbah North', 'Madinat al Riyad'
+  ],
+  Sharjah: [
+    'Muweilah', 'Zahia', 'Industrial area 15', 'Industrial area 17', 'Al Jada', 'University City',
+    'Juraina', 'Qurayen', 'Noaf', 'Sharjah National park', 'Maleha/Maliha road area', 'Sharjah Int Airport',
+    'SAIF Zone', 'Rahmaniya', 'Hay al Tain', 'Tilal', 'Suyoh area', 'Riqaibah area', 'Sajaa area',
+    'Halwan', 'Khezamiya', 'Talah / Riffa / Ghubaiba area', 'Shj cricket stadium / Oasis mall /Ramez mall',
+    'Industrial area 1- 12', 'Nahda sharjah area', 'Rolla', 'Al shaab', 'Al Heerah and Al Muntazah',
+    'Al Rifaah', 'Bu Shagara', 'Majaz', 'Al khan', 'Mamzar', 'Khalidiya', 'Sharjah Corniche'
+  ],
+  'AL Ain': [
+    'Al Fouah', 'Al Raqiyah', 'Hili area', 'Jimi', 'Ghadeer', 'Salamat', 'Talaa', 'Maqam',
+    'Industrial area', 'Shiebat al Watbah', 'Ain al Faydah', 'Zakher / Ramlat zakher', 'Neima / Nimah',
+    'Swuaifi', 'Noud', 'Bawadi mall area', 'Mazyad', 'Dhaher / Ghafah'
+  ]
+};
+
+const getAreasForCity = (city) => {
+  const cityKey = Object.keys(AREAS_BY_CITY).find((key) => key.toLowerCase() === String(city || '').trim().toLowerCase());
+  return cityKey ? AREAS_BY_CITY[cityKey] : [];
 };
 
 // All role chip options matching screenshot
@@ -166,6 +202,7 @@ export default function PartnerDetails() {
   // Work location
   const [primaryCity, setPrimaryCity] = useState('');
   const [selectedAreas, setSelectedAreas] = useState([]);
+  const [isAreaDropdownOpen, setIsAreaDropdownOpen] = useState(false);
 
   // Personal info
   const [firstName, setFirstName] = useState(location.state?.partner?.firstName !== '—' ? (location.state?.partner?.firstName || '') : '');
@@ -290,14 +327,27 @@ export default function PartnerDetails() {
       }
 
       // Location / Areas
-      const locMap = { ...STATIC_LOCATION_MAP, ...dynamicLocMap };
+      const locMap = dynamicLocMap;
+      const primaryLocationDetails =
+        profile.primary_location_details ||
+        partnerData.primary_location_details ||
+        dataObj.primary_location_details;
+      const areasServedDetails =
+        profile.areas_served_details ||
+        partnerData.areas_served_details ||
+        dataObj.areas_served_details;
 
       const rawLocExec =
         profile.location_of_execution ||
         partnerData.location_of_execution ||
-        dataObj.location_of_execution;
+        dataObj.location_of_execution ||
+        profile.location ||
+        partnerData.location ||
+        dataObj.location;
 
-      if (rawLocExec) {
+      if (primaryLocationDetails?.main_location) {
+        setPrimaryCity(primaryLocationDetails.main_location);
+      } else if (rawLocExec) {
         if (typeof rawLocExec === 'string') {
           if (rawLocExec.includes(' - ')) {
             const [c, rest] = rawLocExec.split(' - ');
@@ -317,9 +367,11 @@ export default function PartnerDetails() {
             setPrimaryCity(locMap[num] || rawLocExec);
           }
         } else if (typeof rawLocExec === 'object') {
-          if (rawLocExec.city || rawLocExec.name) {
-            setPrimaryCity(rawLocExec.city || rawLocExec.name);
+          if (rawLocExec.city || rawLocExec.emirate || rawLocExec.name) {
+            setPrimaryCity(rawLocExec.emirate || rawLocExec.city || rawLocExec.name);
           }
+          const locationArea = rawLocExec.area || rawLocExec.sub_location || rawLocExec.area_name;
+          if (locationArea) setSelectedAreas([locationArea]);
         }
       } else if (profile.primary_location || partnerData.primary_location || dataObj.primary_location) {
         const primId = profile.primary_location || partnerData.primary_location || dataObj.primary_location;
@@ -332,6 +384,7 @@ export default function PartnerDetails() {
       }
 
       let areaList =
+        (Array.isArray(areasServedDetails) && areasServedDetails.length > 0 ? areasServedDetails : null) ||
         profile.areas_served ||
         partnerData.areas_served ||
         dataObj.areas_served ||
@@ -339,6 +392,9 @@ export default function PartnerDetails() {
         partnerData.service_locations ||
         profile.locations ||
         partnerData.locations ||
+        profile.location ||
+        partnerData.location ||
+        dataObj.location ||
         [];
 
       if (typeof areaList === 'string') {
@@ -361,7 +417,7 @@ export default function PartnerDetails() {
               return locMap[num] || `Area ${num}`;
             }
             if (typeof a === 'object') {
-              return a.name || a.city || a.area || a.address;
+              return a.name || a.city || a.area || a.sub_location || a.address;
             }
             return a;
           })
@@ -635,10 +691,10 @@ export default function PartnerDetails() {
         const locData = locRes?.data || locRes || [];
         if (Array.isArray(locData)) {
           locData.forEach((l) => {
-            if (l.id && l.name) dynamicLocMap[l.id] = l.name;
-            if (Array.isArray(l.areas)) {
-              l.areas.forEach((a) => {
-                if (a.id && a.name) dynamicLocMap[a.id] = a.name;
+            if (l.id && l.main_location) dynamicLocMap[l.id] = l.main_location;
+            if (Array.isArray(l.sub_locations)) {
+              l.sub_locations.forEach((a) => {
+                if (a.id && a.sub_location) dynamicLocMap[a.id] = a.sub_location;
               });
             }
           });
@@ -741,6 +797,8 @@ export default function PartnerDetails() {
 
   const badgeInfo = getBadgeInfo();
   const displayName = businessName || `${firstName} ${lastName}`.trim() || 'Partner Profile';
+  const availableAreas = getAreasForCity(primaryCity);
+  const visibleSelectedAreas = selectedAreas.filter((area) => availableAreas.includes(area));
 
   const isReviewMode = modeParam === 'review';
   const isManageMode = modeParam === 'manage';
@@ -909,38 +967,64 @@ export default function PartnerDetails() {
                 <select
                   className="vy-form-input"
                   value={primaryCity}
-                  onChange={(e) => setPrimaryCity(e.target.value)}
+                  onChange={(e) => {
+                    setPrimaryCity(e.target.value);
+                    setSelectedAreas([]);
+                  }}
                 >
+                  <option value="">Select primary city</option>
                   <option value="Northern Emirates">Northern Emirates</option>
                   <option value="Dubai">Dubai</option>
                   <option value="Abu Dhabi">Abu Dhabi</option>
                   <option value="Sharjah">Sharjah</option>
+                  <option value="AL Ain">AL Ain</option>
                 </select>
               </div>
 
               <div className="vy-form-group">
                 <label className="vy-form-label">AREA SERVED</label>
-                <select
-                  className="vy-form-input"
-                  value=""
-                  onChange={(e) => {
-                    if (e.target.value && !selectedAreas.includes(e.target.value)) {
-                      setSelectedAreas([...selectedAreas, e.target.value]);
-                    }
-                  }}
-                >
-                  <option value="">{selectedAreas.length} Areas Selected ({selectedAreas.join(', ')})</option>
-                  <option value="Flag park">Flag park</option>
-                  <option value="Zorah">Zorah</option>
-                  <option value="Downtown">Downtown</option>
-                  <option value="Marina">Marina</option>
-                </select>
+                <div className="vy-area-multiselect">
+                  <button
+                    type="button"
+                    className="vy-form-input vy-area-select-trigger"
+                    aria-expanded={isAreaDropdownOpen}
+                    onClick={() => setIsAreaDropdownOpen((isOpen) => !isOpen)}
+                  >
+                    <span>
+                      {visibleSelectedAreas.length > 0
+                        ? `${visibleSelectedAreas.length} Areas Selected (${visibleSelectedAreas.join(', ')})`
+                        : 'Select areas served'}
+                    </span>
+                    <FiChevronDown size={16} />
+                  </button>
+
+                  {isAreaDropdownOpen && (
+                    <div className="vy-area-options" role="group" aria-label="Areas served">
+                      {availableAreas.length > 0 ? availableAreas.map((area) => (
+                        <label key={area} className="vy-area-option">
+                          <input
+                            type="checkbox"
+                            checked={visibleSelectedAreas.includes(area)}
+                            onChange={() => {
+                              setSelectedAreas((prev) => prev.includes(area)
+                                ? prev.filter((selectedArea) => selectedArea !== area)
+                                : [...prev, area]);
+                            }}
+                          />
+                          <span>{area}</span>
+                        </label>
+                      )) : (
+                        <span className="vy-area-empty">Select a primary city first</span>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
             {/* Selected Area Tags */}
             <div className="vy-selected-tags-row">
-              {selectedAreas.map((area) => (
+              {visibleSelectedAreas.map((area) => (
                 <div key={area} className="vy-location-tag">
                   <span>{area}</span>
                   <button
