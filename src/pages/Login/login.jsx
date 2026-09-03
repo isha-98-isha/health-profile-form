@@ -30,30 +30,30 @@ function Login() {
 		return nextErrors;
 	};
 
-const handleSubmit = async (event) => {
-  event.preventDefault();
-  const nextErrors = validate();
-  if (Object.keys(nextErrors).length) {
-    setErrors(nextErrors);
-    return;
-  }
+	const handleSubmit = async (event) => {
+		event.preventDefault();
+		const nextErrors = validate();
+		if (Object.keys(nextErrors).length) {
+			setErrors(nextErrors);
+			return;
+		}
 
-  setStatus({ type: 'loading', message: 'Signing you in...' });
-  try {
-    const response = await login({ email: form.email.trim(), password: form.password, remember: form.remember });
+		setStatus({ type: 'loading', message: 'Signing you in...' });
+		try {
+			const response = await login({ email: form.email.trim(), password: form.password, remember: form.remember });
 
-    if (response && response.success !== false) {
-      setStatus({ type: 'success', message: 'Signed in successfully.' });
-      toast.success('login successfully');
-      navigate('/dashboard');
-      return;
-    }
+			if (response && response.success !== false) {
+				setStatus({ type: 'success', message: 'Signed in successfully.' });
+				toast.success('login successfully');
+				navigate('/dashboard');
+				return;
+			}
 
-    throw new Error(response?.message || 'Authentication failed');
-  } catch (error) {
-    setStatus({ type: 'error', message: error.message || 'Unable to connect to the login service' });
-  }
-};
+			throw new Error(response?.message || 'Authentication failed');
+		} catch (error) {
+			setStatus({ type: 'error', message: error.message || 'Unable to connect to the login service' });
+		}
+	};
 
 	return (
 		<main className="auth-page">
@@ -67,17 +67,17 @@ const handleSubmit = async (event) => {
 					<h1>Access your assessment dashboard</h1>
 					<form onSubmit={handleSubmit} noValidate>
 						<label htmlFor="login-email"></label>
-							<input id="login-email" 
-							name="email" type="email" 
-							autoComplete="email" 
-							value={form.email} 
-							onChange={updateField} 
-							placeholder="Email" 
+						<input id="login-email"
+							name="email" type="email"
+							autoComplete="email"
+							value={form.email}
+							onChange={updateField}
+							placeholder="Email"
 							aria-invalid={Boolean(errors.email)} />
-							{errors.email && <span className="field-error">{errors.email}</span>}
+						{errors.email && <span className="field-error">{errors.email}</span>}
 
 						<label htmlFor="login-password"></label>
-							<div className="password-field">
+						<div className="password-field">
 							<input
 								id="login-password"
 								name="password"
@@ -96,15 +96,15 @@ const handleSubmit = async (event) => {
 							>
 								{showPassword ? <FaEye /> : <FaEyeSlash />}
 							</button>
-							</div>
-							{errors.password && <span className="field-error">{errors.password}</span>}
+						</div>
+						{errors.password && <span className="field-error">{errors.password}</span>}
 
 						<div className="auth-options">
 							<label className="remember-option">
-								<input name="remember" type="checkbox" checked={form.remember} 
-								onChange={updateField} /> <h3>Keep me signed in</h3></label>
-							<button type="button" className="text-button" 
-							onClick={() => setStatus({ type: 'info', message: 'Password reset is available through your API.' })}>Forgot password?</button>
+								<input name="remember" type="checkbox" checked={form.remember}
+									onChange={updateField} /> <h3>Keep me signed in</h3></label>
+							<button type="button" className="text-button"
+								onClick={() => setStatus({ type: 'info', message: 'Password reset is available through your API.' })}>Forgot password ?</button>
 						</div>
 						<button className="submit-button" type="submit" disabled={status.type === 'loading' || !form.email.trim() || !form.password.trim()}>{status.type === 'loading' ? 'Please wait...' : 'Continue'}</button>
 						{status.message && <p className={`form-status ${status.type}`} role="status">{status.message}</p>}
