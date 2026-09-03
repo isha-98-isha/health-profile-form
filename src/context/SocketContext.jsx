@@ -2,8 +2,17 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import { getLocalToken, getLocalUser } from '../services/auth';
 
-// Use the current host or socket server URL
-const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || (window.location.protocol === 'https:' ? 'https://api.dalveco.com' : 'http://5.189.144.230:9000');
+// Check if socket connection is allowed (avoid Mixed Content errors when running on HTTPS without an SSL socket server)
+const isSocketAllowed = () => {
+    if (typeof window === 'undefined') return false;
+    // On HTTP (localhost, dev IP), direct connection is completely allowed
+    if (window.location.protocol === 'http:') return true;
+    // On HTTPS, only allow if explicit secure wss:// or https:// URL is provided
+    const configuredUrl = process.env.REACT_APP_SOCKET_URL || '';
+    return configuredUrl.startsWith('https://') || configuredUrl.startsWith('wss://');
+};
+
+const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://5.189.144.230:9000';
 
 const SocketContext = createContext({
     socket: null,
@@ -24,7 +33,8 @@ export const SocketProvider = ({ children }) => {
             const user = getLocalUser();
             const userUuid = user?.uuid || user?.id || user?.user_uuid;
 
-            if (!token) {
+            // Only attempt socket connection if token exists and socket is allowed by protocol
+            if (!token || !isSocketAllowed()) {
                 if (socketInstance) {
                     socketInstance.disconnect();
                     socketInstance = null;
