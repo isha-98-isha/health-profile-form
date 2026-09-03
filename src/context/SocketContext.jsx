@@ -2,16 +2,17 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import { getLocalToken, getLocalUser } from '../services/auth';
 
-// When running on HTTPS (such as Vercel), connect to the same origin to route through Vercel's proxy rewrite over HTTPS
+// Check if socket connection is feasible (avoid Mixed Content or serverless proxy failures on HTTPS)
 const getSocketUrl = () => {
-    if (process.env.REACT_APP_SOCKET_URL && !window.location.origin.startsWith('https://')) {
+    // If on localhost / development, connect to local backend
+    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        return process.env.REACT_APP_SOCKET_URL || 'http://5.189.144.230:9000';
+    }
+    // If a secure wss/https socket URL is explicitly provided in env
+    if (process.env.REACT_APP_SOCKET_URL && process.env.REACT_APP_SOCKET_URL.startsWith('https://')) {
         return process.env.REACT_APP_SOCKET_URL;
     }
-    // On HTTPS, use same origin so requests/polling go through HTTPS rewrite /socket.io without Mixed Content error
-    if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
-        return window.location.origin;
-    }
-    return process.env.REACT_APP_SOCKET_URL || 'http://5.189.144.230:9000';
+    return null;
 };
 
 const SocketContext = createContext({
@@ -32,8 +33,10 @@ export const SocketProvider = ({ children }) => {
             const token = getLocalToken();
             const user = getLocalUser();
             const userUuid = user?.uuid || user?.id || user?.user_uuid;
+            const targetUrl = getSocketUrl();
 
-            if (!token) {
+            // Do not attempt connection if no token or if no valid socket server available for this protocol
+            if (!token || !targetUrl) {
                 if (socketInstance) {
                     socketInstance.disconnect();
                     socketInstance = null;
@@ -45,10 +48,8 @@ export const SocketProvider = ({ children }) => {
 
             // Reuse existing connected socket instance across route changes and StrictMode.
             if (!socketInstance) {
-                const targetUrl = getSocketUrl();
                 socketInstance = io(targetUrl, {
-                    path: '/socket.io/',
-                    transports: ['polling', 'websocket'],
+                    transports: ['websocket', 'polling'],
                     auth: {
                         token: token,
                         user_uuid: userUuid || '',
@@ -58,9 +59,9 @@ export const SocketProvider = ({ children }) => {
                         user_uuid: userUuid || '',
                     },
                     reconnection: true,
-                    reconnectionAttempts: 5,
-                    reconnectionDelay: 2000,
-                    timeout: 10000,
+                    reconnectionAttempts: 3,
+                    reconnectionDelay: 3000,
+                    timeout: 8000,
                 });
 
                 socketInstance.on('connect', () => {

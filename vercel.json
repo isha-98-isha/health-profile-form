@@ -1,10 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/socket.io/:path*",
-      "destination": "http://5.189.144.230:9000/socket.io/:path*"
-    },
-    {
       "source": "/auth/:path*",
       "destination": "http://5.189.144.230:9000/auth/:path*"
     },
