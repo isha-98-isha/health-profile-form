@@ -142,8 +142,7 @@ export const getClientData = async (status = 'all', page = 1, limit = 10, search
 
 export const getWorkLocations = async () => {
 	const token = getLocalToken();
-	const baseUrl = process.env.REACT_APP_SOCKET_URL || 'http://5.189.144.230:9000';
-	const url = `${baseUrl}/vyonic/v1/work-locations`;
+	const url = '/vyonic/v1/work-locations';
 
 	try {
 		const response = await axios.get(url, {
@@ -161,9 +160,9 @@ export const getWorkLocations = async () => {
 
 export const getPartnerProfileDetails = async (userUuid) => {
 	const token = getLocalToken();
-	const baseUrl = process.env.REACT_APP_SOCKET_URL || 'http://5.189.144.230:9000';
 	const detailsPath = process.env.REACT_APP_PARTNER_DETAILS_API_URL || '/vyonic/v1/profile-details';
-	const url = `${baseUrl}${detailsPath.startsWith('/') ? detailsPath : `/${detailsPath}`}?user_uuid=${userUuid}`;
+	const cleanPath = detailsPath.startsWith('/') ? detailsPath : `/${detailsPath}`;
+	const url = `${cleanPath}?user_uuid=${userUuid}`;
 
 	try {
 		const response = await axios.get(url, {
