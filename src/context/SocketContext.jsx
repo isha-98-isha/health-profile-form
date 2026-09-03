@@ -2,8 +2,17 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import { getLocalToken, getLocalUser } from '../services/auth';
 
-// Use the current host or socket server URL
-const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || (window.location.protocol === 'https:' ? 'https://api.dalveco.com' : 'http://5.189.144.230:9000');
+// When running on HTTPS (such as Vercel), connect to the same origin to route through Vercel's proxy rewrite over HTTPS
+const getSocketUrl = () => {
+    if (process.env.REACT_APP_SOCKET_URL && !window.location.origin.startsWith('https://')) {
+        return process.env.REACT_APP_SOCKET_URL;
+    }
+    // On HTTPS, use same origin so requests/polling go through HTTPS rewrite /socket.io without Mixed Content error
+    if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+        return window.location.origin;
+    }
+    return process.env.REACT_APP_SOCKET_URL || 'http://5.189.144.230:9000';
+};
 
 const SocketContext = createContext({
     socket: null,
@@ -36,8 +45,10 @@ export const SocketProvider = ({ children }) => {
 
             // Reuse existing connected socket instance across route changes and StrictMode.
             if (!socketInstance) {
-                socketInstance = io(SOCKET_URL, {
-                    transports: ['websocket', 'polling'],
+                const targetUrl = getSocketUrl();
+                socketInstance = io(targetUrl, {
+                    path: '/socket.io/',
+                    transports: ['polling', 'websocket'],
                     auth: {
                         token: token,
                         user_uuid: userUuid || '',
@@ -49,6 +60,7 @@ export const SocketProvider = ({ children }) => {
                     reconnection: true,
                     reconnectionAttempts: 5,
                     reconnectionDelay: 2000,
+                    timeout: 10000,
                 });
 
                 socketInstance.on('connect', () => {
