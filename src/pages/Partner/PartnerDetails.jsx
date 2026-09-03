@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { FiArrowLeft, FiChevronDown, FiX } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import DashboardNavbar from '../../components/Dashboard/DashboardNavbar';
-import { getPartnerProfileDetails, getWorkLocations } from '../../services/auth';
+import { getPartnerProfileDetails, getWorkLocations, updatePartnerProfile } from '../../services/auth';
 import './partnerDetails.css';
 
 const AREAS_BY_CITY = {
@@ -201,7 +201,10 @@ export default function PartnerDetails() {
   
   // Work location
   const [primaryCity, setPrimaryCity] = useState('');
+  const [primaryLocationId, setPrimaryLocationId] = useState(null);
   const [selectedAreas, setSelectedAreas] = useState([]);
+  const [selectedAreaIds, setSelectedAreaIds] = useState([]);
+  const [locationMap, setLocationMap] = useState({});
   const [isAreaDropdownOpen, setIsAreaDropdownOpen] = useState(false);
 
   // Personal info
@@ -220,8 +223,10 @@ export default function PartnerDetails() {
   const [selectedDays, setSelectedDays] = useState([]);
   const [shortBio, setShortBio] = useState('');
   const [internalNotes, setInternalNotes] = useState('');
+  const [partnerId, setPartnerId] = useState(null);
   const [authUuid, setAuthUuid] = useState(id || '2f6b63a5-86ef-4092-a2e2-ebbd398ba2e0');
   const [currentType, setCurrentType] = useState('Clinic');
+  const [isSaving, setIsSaving] = useState(false);
 
   // Load API partner data
   useEffect(() => {
@@ -232,6 +237,9 @@ export default function PartnerDetails() {
       const profile = dataObj.profile || dataObj.user_profile || dataObj.partner_profile || dataObj.raw || dataObj;
       const user = dataObj.user || profile.user || {};
       const partnerData = dataObj.partner || dataObj.data || profile;
+
+      const numericId = dataObj.id || profile.id || partnerData.id;
+      if (numericId) setPartnerId(numericId);
 
       // Status
       const rawStatus = (
@@ -347,6 +355,7 @@ export default function PartnerDetails() {
 
       if (primaryLocationDetails?.main_location) {
         setPrimaryCity(primaryLocationDetails.main_location);
+        if (primaryLocationDetails.id != null) setPrimaryLocationId(primaryLocationDetails.id);
       } else if (rawLocExec) {
         if (typeof rawLocExec === 'string') {
           if (rawLocExec.includes(' - ')) {
@@ -376,6 +385,7 @@ export default function PartnerDetails() {
       } else if (profile.primary_location || partnerData.primary_location || dataObj.primary_location) {
         const primId = profile.primary_location || partnerData.primary_location || dataObj.primary_location;
         const num = Number(primId);
+        if (!Number.isNaN(num)) setPrimaryLocationId(num);
         if (locMap[num]) setPrimaryCity(locMap[num]);
       } else if (profile.primary_city || profile.city || partnerData.city) {
         const cVal = profile.primary_city || profile.city || partnerData.city;
@@ -410,6 +420,11 @@ export default function PartnerDetails() {
       }
 
       if (Array.isArray(areaList) && areaList.length > 0) {
+        const areaIds = areaList
+          .map((area) => (typeof area === 'object' ? area.id : area))
+          .filter((area) => area != null && !Number.isNaN(Number(area)))
+          .map(Number);
+        if (areaIds.length > 0) setSelectedAreaIds(areaIds);
         const areas = areaList
           .map((a) => {
             if (typeof a === 'number' || (!isNaN(Number(a)) && typeof a === 'string' && a.trim() !== '')) {
@@ -708,6 +723,7 @@ export default function PartnerDetails() {
           populateFieldsFromObject(location.state.partner.raw, dynamicLocMap);
         }
       }
+        if (!cancelled) setLocationMap(dynamicLocMap);
 
       if (!id || id.startsWith('partner-')) {
         setLoading(false);
@@ -768,24 +784,86 @@ export default function PartnerDetails() {
     setSelectedAreas(prev => prev.filter(a => a !== area));
   };
 
+  const persistStatus = async (status) => {
+    if (!partnerId) {
+      toast.error('This partner does not have a valid id');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await updatePartnerProfile({
+        id: partnerId,
+        user_uuid: authUuid,
+        approval_status: status,
+        status,
+        admin_review_notes: rejectionNote || null,
+        notes: rejectionNote || null,
+      });
+      setPartnerStatus(status);
+      toast.success(`Partner application ${status === 'pending' ? 'reset to pending' : status} successfully`);
+      navigate('/partner');
+    } catch (error) {
+      toast.error(error.message || 'Unable to update partner status');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   // Action decision handlers
-  const handleApprove = () => {
-    setPartnerStatus('approved');
-    toast.success('Partner application approved successfully');
-  };
+  const handleApprove = () => persistStatus('approved');
+  const handleReject = () => persistStatus('rejected');
+  const handleResetPending = () => persistStatus('pending');
 
-  const handleReject = () => {
-    setPartnerStatus('rejected');
-    toast.info('Partner application marked as rejected');
-  };
+  const handleSaveChanges = async () => {
+    if (!partnerId || !authUuid || authUuid.startsWith('partner-')) {
+      toast.error('This partner does not have a valid identifier');
+      return;
+    }
 
-  const handleResetPending = () => {
-    setPartnerStatus('pending');
-    toast.info('Partner application reset to pending');
-  };
+    setIsSaving(true);
+    try {
+      const locationIdByName = Object.entries(locationMap).reduce((map, [locationId, name]) => {
+        map[String(name).trim().toLowerCase()] = Number(locationId);
+        return map;
+      }, {});
+      const resolvedPrimaryLocationId = primaryLocationId || locationIdByName[primaryCity.trim().toLowerCase()];
+      const resolvedAreaIds = selectedAreas
+        .map((area) => locationIdByName[String(area).trim().toLowerCase()])
+        .filter((areaId) => areaId != null);
 
-  const handleSaveChanges = () => {
-    toast.success('Partner details saved successfully');
+      await updatePartnerProfile({
+        id: partnerId,
+        user_uuid: authUuid,
+        approval_status: partnerStatus,
+        status: partnerStatus,
+        business_name: businessName,
+        primary_contact_name: contactName,
+        first_name: firstName,
+        last_name: lastName,
+        country_code: phoneCountryCode,
+        phone,
+        whatsapp_same_as_phone: isWhatsappSame,
+        website_url: websiteInstagram,
+        roles: selectedRoles,
+        offerings: selectedOffers,
+        primary_location: resolvedPrimaryLocationId,
+        areas_served: resolvedAreaIds.length > 0 ? resolvedAreaIds : selectedAreaIds,
+        service_mode: selectedServiceModes.map((mode) => (
+          mode === 'Online / Remote' ? 'online' : 'home_visits'
+        )).join(','),
+        available_days: selectedDays,
+        price_per_session: selectedPrice,
+        short_bio: shortBio,
+        admin_review_notes: internalNotes,
+      });
+      toast.success('Partner details saved successfully');
+      navigate('/partner');
+    } catch (error) {
+      toast.error(error.message || 'Unable to save partner details');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Badge text and class
@@ -847,7 +925,7 @@ export default function PartnerDetails() {
             <button
               className="btn-approve"
               onClick={handleApprove}
-              disabled={disableApprove}
+              disabled={disableApprove || isSaving}
               title={disableApprove ? 'Approve is disabled in manage mode' : ''}
             >
               Approve
@@ -855,7 +933,7 @@ export default function PartnerDetails() {
             <button
               className="btn-reject"
               onClick={handleReject}
-              disabled={disableReject}
+              disabled={disableReject || isSaving}
               title={disableReject ? 'Reject is disabled in reopen mode' : ''}
             >
               Reject
@@ -863,7 +941,7 @@ export default function PartnerDetails() {
             <button
               className="btn-reset-pending"
               onClick={handleResetPending}
-              disabled={disableResetPending}
+              disabled={disableResetPending || isSaving}
               title={disableResetPending ? 'Reset to pending is disabled in review mode' : ''}
             >
               Reset to pending
@@ -969,7 +1047,9 @@ export default function PartnerDetails() {
                   value={primaryCity}
                   onChange={(e) => {
                     setPrimaryCity(e.target.value);
+                    setPrimaryLocationId(null);
                     setSelectedAreas([]);
+                    setSelectedAreaIds([]);
                   }}
                 >
                   <option value="">Select primary city</option>
@@ -1248,8 +1328,9 @@ export default function PartnerDetails() {
               type="button"
               className="btn-save-changes"
               onClick={handleSaveChanges}
+              disabled={isSaving}
             >
-              Save changes
+              {isSaving ? 'Saving...' : 'Save changes'}
             </button>
           </div>
         </section>

@@ -129,6 +129,28 @@ const formatPartner = (item, defaultStatus = 'pending', index = 0, dynamicLocMap
 
   // If location is still empty, construct from primary_location and areas_served (like "Northern Emirates - Araibi")
   if (location === '—') {
+    const primaryLocationDetails =
+      item.primary_location_details ||
+      profile.primary_location_details ||
+      user.primary_location_details;
+    const areasServedDetails =
+      item.areas_served_details ||
+      profile.areas_served_details ||
+      user.areas_served_details;
+
+    const detailedCity = primaryLocationDetails?.main_location || primaryLocationDetails?.name || '';
+    const detailedAreas = Array.isArray(areasServedDetails)
+      ? areasServedDetails
+        .map((area) => area?.sub_location || area?.area || area?.name)
+        .filter(Boolean)
+      : [];
+
+    if (detailedCity || detailedAreas.length > 0) {
+      location = [detailedCity, detailedAreas.join(', ')].filter(Boolean).join(' - ');
+    }
+  }
+
+  if (location === '—') {
     const primLocId = item.primary_location || profile.primary_location || user.primary_location;
     const areasServedIds = item.areas_served || profile.areas_served || user.areas_served;
 
@@ -240,7 +262,7 @@ export default function Partner() {
           getPartnerData('all', currentPage, pageSize, searchQuery)
         ]);
         const dynamicLocMap = {};
-        const locationData = locationsResponse?.data || locationsResponse || [];
+        const locationData = locationsResponse?.data?.data || locationsResponse?.data || locationsResponse || [];
         if (Array.isArray(locationData)) {
           locationData.forEach((location) => {
             if (location?.id != null && location?.main_location) dynamicLocMap[location.id] = location.main_location;

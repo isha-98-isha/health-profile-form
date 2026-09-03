@@ -10,6 +10,7 @@ const getDashboardUrl = () => process.env.REACT_APP_DASHBOARD_API_URL || '/vyoni
 const getDashboardStatsUrl = () => process.env.REACT_APP_DASHBOARD_STATS_API_URL || '/vyonic/v1/dashboard';
 const getClientUrl = () => process.env.REACT_APP_CLIENT_API_URL || '/vyonic/v1/vyonic-users';
 const getPartnerUrl = () => process.env.REACT_APP_PARTNER_API_URL || '/vyonic/v1/partners-list';
+const getPartnerProfileUpdateUrl = () => process.env.REACT_APP_PARTNER_PROFILE_API_URL || '/vyonic/v1/partner-profile';
 const parseApiError = (error, fallbackMessage) => {
 	if (error.response?.data) {
 		const data = error.response.data;
@@ -204,6 +205,28 @@ export const getPartnerData = async (status = 'all', page = 1, limit = 10, searc
 	} catch (error) {
 		console.error('[getPartnerData] POST failed:', error?.response?.status, error?.message);
 		throw new Error(parseApiError(error, 'Failed to fetch partner data'));
+	}
+};
+
+export const updatePartnerProfile = async (profileData) => {
+	const url = getPartnerProfileUpdateUrl();
+	const token = getLocalToken();
+	const method = (process.env.REACT_APP_PARTNER_PROFILE_API_METHOD || 'put').toLowerCase();
+
+	try {
+		const response = await axios({
+			method,
+			url,
+			data: profileData,
+			headers: {
+				'Authorization': `Bearer ${token}`
+			}
+		});
+
+		return response.data;
+	} catch (error) {
+		console.error('[updatePartnerProfile] request failed:', error?.response?.status, error?.message);
+		throw new Error(parseApiError(error, 'Failed to update partner profile'));
 	}
 };
 
