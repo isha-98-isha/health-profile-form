@@ -12,7 +12,7 @@ const isSocketAllowed = () => {
     return configuredUrl.startsWith('https://') || configuredUrl.startsWith('wss://');
 };
 
-const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://5.189.144.230:9000';
+const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'https://api.dalveco.com';
 
 const SocketContext = createContext({
     socket: null,
