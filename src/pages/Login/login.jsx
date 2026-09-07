@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/vyonic_logo_small.webp';
 import heroLogo from '../../assets/vyonic_log_big.webp';
-import { login } from '../../services/auth';
+import { login, googleLogin } from '../../services/auth';
+import { auth, firebaseConfigReady } from '../../services/firebase';
 import './login.css';
-import { FaEye, FaEyeSlash } from "react-icons/fa"; // eye icons
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FcGoogle } from 'react-icons/fc';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { toast } from 'react-toastify';
 
 function Login() {
@@ -13,12 +16,90 @@ function Login() {
 	const [errors, setErrors] = useState({});
 	const [status, setStatus] = useState({ type: '', message: '' });
 	const [showPassword, setShowPassword] = useState(false);
+	const [googleLoading, setGoogleLoading] = useState(false);
 
 	const updateField = (event) => {
 		const { name, value, checked, type } = event.target;
 		setForm((current) => ({ ...current, [name]: type === 'checkbox' ? checked : value }));
 		setErrors((current) => ({ ...current, [name]: '' }));
 		setStatus({ type: '', message: '' });
+	};
+
+	const handleGoogleSignIn = async () => {
+		if (!firebaseConfigReady || !auth) {
+			setStatus({ type: 'info', message: 'Add Firebase configuration to enable Google sign-in.' });
+			return;
+		}
+
+		setGoogleLoading(true);
+		setStatus({ type: 'loading', message: 'Connecting to Google...' });
+		try {
+			if (process.env.NODE_ENV === 'development') {
+				console.log('Firebase initialized:', Boolean(auth));
+				console.log('Google login started');
+			}
+
+			const provider = new GoogleAuthProvider();
+			provider.addScope('email');
+			provider.addScope('profile');
+			provider.addScope('openid');
+
+			const result = await signInWithPopup(auth, provider);
+			console.log("result :::", result);
+
+			const credential = GoogleAuthProvider.credentialFromResult(result);
+			console.log("credential :::", credential);
+			const accessToken = credential?.idToken;
+
+			if (process.env.NODE_ENV === 'development') {
+				console.log('Firebase initialized:', Boolean(auth));
+				console.log('Google credential received:', Boolean(credential));
+				console.log('Token exists:', Boolean(accessToken));
+				console.log('Token format/type:', typeof accessToken === 'string' && accessToken.startsWith('ya29.') ? 'Google OAuth Access Token (ya29...)' : 'Other');
+				console.log('Token length:', accessToken ? accessToken.length : 0);
+			}
+
+			if (!accessToken) {
+				throw new Error('Could not extract Google OAuth access token from provider credentials.');
+			}
+
+			if (process.env.NODE_ENV === 'development') {
+				console.log('Backend Google login request started');
+			}
+
+			setStatus({ type: 'loading', message: 'Verifying with server...' });
+			await googleLogin({
+				accessToken,
+				role: 'user',
+				fcmToken: '',
+			});
+
+			if (process.env.NODE_ENV === 'development') {
+				console.log('Backend Google login successful');
+			}
+
+			// Clean up temporary user testing key if it exists
+			window.localStorage.removeItem('vyonic-firebase-user');
+
+			setStatus({ type: 'success', message: 'Signed in successfully with Google.' });
+			toast.success('Login successfully');
+			navigate('/dashboard');
+		} catch (error) {
+			if (process.env.NODE_ENV === 'development') {
+				console.log('Backend response status:', error.status || error.response?.status || 'Error');
+				console.error('Google sign-in error:', error);
+			}
+
+			if (error.code === 'auth/popup-closed-by-user') {
+				setStatus({ type: 'error', message: 'Google sign-in was cancelled.' });
+			} else {
+				const errorMessage = error.message || 'Google sign-in failed.';
+				setStatus({ type: 'error', message: errorMessage });
+				toast.error(errorMessage);
+			}
+		} finally {
+			setGoogleLoading(false);
+		}
 	};
 
 	const validate = () => {
@@ -107,6 +188,11 @@ function Login() {
 								onClick={() => setStatus({ type: 'info', message: 'Password reset is available through your API.' })}>Forgot password ?</button>
 						</div>
 						<button className="submit-button" type="submit" disabled={status.type === 'loading' || !form.email.trim() || !form.password.trim()}>{status.type === 'loading' ? 'Please wait...' : 'Continue'}</button>
+						<div className="auth-divider" aria-hidden="true"><span>or</span></div>
+						<button className="google-button" type="button" onClick={handleGoogleSignIn} disabled={googleLoading || status.type === 'loading'}>
+							<FcGoogle aria-hidden="true" />
+							{googleLoading ? 'Connecting...' : 'Continue with Google'}
+						</button>
 						{status.message && <p className={`form-status ${status.type}`} role="status">{status.message}</p>}
 					</form>
 				</div>
