@@ -229,6 +229,69 @@ export const updatePartnerProfile = async (profileData) => {
 	}
 };
 
+export const getDeviceId = () => {
+	const DEVICE_STORAGE_KEY = 'vyonic-device-id';
+	let deviceId = window.localStorage.getItem(DEVICE_STORAGE_KEY);
+	if (!deviceId) {
+		if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+			deviceId = crypto.randomUUID();
+		} else {
+			deviceId = 'vyonic_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+		}
+		window.localStorage.setItem(DEVICE_STORAGE_KEY, deviceId);
+	}
+	return deviceId;
+};
+
+const getGoogleLoginUrl = () => process.env.REACT_APP_GOOGLE_LOGIN_API_URL || '/auth/v1/google-login';
+
+export const googleLogin = async ({ accessToken, role = 'user', fcmToken = '' }) => {
+	const url = getGoogleLoginUrl();
+	const deviceId = getDeviceId();
+	const payload = {
+		access_token: accessToken,
+		id_token: accessToken,
+		role: role || 'user',
+		device_id: deviceId,
+		fcm_token: fcmToken ?? '',
+	};
+
+	if (process.env.NODE_ENV === 'development') {
+		console.log('[Google Login] URL:', url);
+		console.log('[Google Login] access_token present:', Boolean(accessToken));
+		console.log('[Google Login] payload:', {
+			role: payload.role,
+			device_id: payload.device_id,
+			fcm_token_present: Boolean(payload.fcm_token),
+			access_token_present: Boolean(payload.access_token),
+			id_token_present: Boolean(payload.id_token),
+		});
+	}
+
+	try {
+		const response = await axios.post(url, payload);
+		const data = response.data;
+		console.log("data::::", data);
+
+		if (data.success === false) {
+			throw new Error(data.message || 'Google authentication failed');
+		}
+
+		const user = data.data?.user || data.user || null;
+		const token = data.data?.token || data.token || null;
+		console.log('[Google Login] user:', user);
+		console.log('[Google Login] token:', token);
+		saveLocalUser(user, token, true);
+		return data;
+	} catch (error) {
+		const parsedMessage = parseApiError(error, 'Google authentication failed');
+		const apiError = new Error(parsedMessage);
+		apiError.status = error.response?.status;
+		apiError.response = error.response;
+		throw apiError;
+	}
+};
+
 export const login = async ({ email, password, remember }) => {
 	const url = getLoginUrl();
 	try {

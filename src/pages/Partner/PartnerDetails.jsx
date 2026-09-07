@@ -802,7 +802,6 @@ export default function PartnerDetails() {
       });
       setPartnerStatus(status);
       toast.success(`Partner application ${status === 'pending' ? 'reset to pending' : status} successfully`);
-      navigate('/partner');
     } catch (error) {
       toast.error(error.message || 'Unable to update partner status');
     } finally {
@@ -858,7 +857,6 @@ export default function PartnerDetails() {
         admin_review_notes: internalNotes,
       });
       toast.success('Partner details saved successfully');
-      navigate('/partner');
     } catch (error) {
       toast.error(error.message || 'Unable to save partner details');
     } finally {
